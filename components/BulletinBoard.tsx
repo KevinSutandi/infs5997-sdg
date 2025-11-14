@@ -1,0 +1,842 @@
+'use client';
+import { useState, useEffect } from "react";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "./ui/dropdown-menu";
+import { ShareDialog } from "./ShareDialog";
+import { availableActivities } from "@/data/mockData";
+import { AvailableActivity, SDG_GOALS } from "@/types";
+import {
+  Search,
+  BookOpen,
+  Users,
+  Calendar,
+  MapPin,
+  Award,
+  User2,
+  Clock,
+  CheckCircle2,
+  ChevronDown,
+  Filter,
+  Heart,
+  Info,
+} from "lucide-react";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
+
+const FAVORITES_STORAGE_KEY = 'sdg-favorite-events';
+
+export function BulletinBoard() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter] = useState<
+    "all" | "coursework" | "society" | "event"
+  >("all");
+  const [selectedActivity, setSelectedActivity] =
+    useState<AvailableActivity | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [registeredActivities, setRegisteredActivities] =
+    useState<Set<string>>(new Set());
+  const [selectedSDGs, setSelectedSDGs] = useState<Set<number>>(
+    new Set()
+  );
+  const [favoriteActivityIds, setFavoriteActivityIds] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    }
+    return new Set();
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(favoriteActivityIds)));
+    }
+  }, [favoriteActivityIds]);
+
+  const toggleFavorite = (activityId: string) => {
+    setFavoriteActivityIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(activityId)) {
+        newSet.delete(activityId);
+        toast.success('Removed from favorites');
+      } else {
+        newSet.add(activityId);
+        toast.success('Added to favorites');
+      }
+      return newSet;
+    });
+  };
+
+  const isFavorite = (activityId: string) => favoriteActivityIds.has(activityId);
+
+  const filteredActivities = availableActivities.filter(
+    (activity) => {
+      const matchesCategory =
+        categoryFilter === "all" ||
+        activity.category === categoryFilter;
+
+      // SDG filter logic
+      const matchesSDG =
+        selectedSDGs.size === 0 ||
+        activity.sdgGoals.some((goalNum) =>
+          selectedSDGs.has(goalNum)
+        );
+
+      // Enhanced search logic
+      const query = searchQuery.toLowerCase().trim();
+
+      // Check if query is a number (SDG goal number)
+      const isNumericQuery = /^\d+$/.test(query);
+
+      let matchesSearch = false;
+
+      if (isNumericQuery) {
+        // Search by SDG number
+        const sdgNumber = parseInt(query);
+        matchesSearch = activity.sdgGoals.includes(sdgNumber);
+
+        // Also check if the SDG goal name is in title/description
+        const sdgGoal = SDG_GOALS.find(
+          (g) => g.number === sdgNumber,
+        );
+        if (sdgGoal) {
+          matchesSearch =
+            matchesSearch ||
+            activity.title
+              .toLowerCase()
+              .includes(sdgGoal.name.toLowerCase()) ||
+            activity.description
+              .toLowerCase()
+              .includes(sdgGoal.name.toLowerCase());
+        }
+      } else {
+        // Regular text search
+        matchesSearch =
+          activity.title.toLowerCase().includes(query) ||
+          activity.description.toLowerCase().includes(query) ||
+          activity.organizer.toLowerCase().includes(query);
+
+        // Also search by SDG goal names
+        const matchingGoals = SDG_GOALS.filter((goal) =>
+          goal.name.toLowerCase().includes(query),
+        );
+
+        if (matchingGoals.length > 0) {
+          matchesSearch =
+            matchesSearch ||
+            activity.sdgGoals.some((goalNum) =>
+              matchingGoals.some((g) => g.number === goalNum),
+            );
+        }
+      }
+
+      return matchesCategory && matchesSDG && matchesSearch;
+    },
+  );
+
+  const handleRegister = (activity: AvailableActivity) => {
+    setSelectedActivity(activity);
+    setIsDialogOpen(true);
+  };
+
+  const confirmRegistration = () => {
+    if (selectedActivity) {
+      setRegisteredActivities((prev) =>
+        new Set(prev).add(selectedActivity.id),
+      );
+      const pointsToEarn = selectedActivity.pointsBreakdown?.total ?? selectedActivity.points;
+      toast.success(
+        `Successfully registered for ${selectedActivity.title}!`,
+        {
+          description: `You will earn ${pointsToEarn} SDG points upon completion.`,
+        },
+      );
+      setIsDialogOpen(false);
+      setSelectedActivity(null);
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "coursework":
+        return <BookOpen className="h-4 w-4" />;
+      case "society":
+        return <Users className="h-4 w-4" />;
+      case "event":
+        return <Calendar className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case "coursework":
+        return "bg-blue-500";
+      case "society":
+        return "bg-purple-500";
+      case "event":
+        return "bg-yellow-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  const getAvailabilityStatus = (
+    activity: AvailableActivity,
+  ) => {
+    if (!activity.capacity)
+      return { text: "Open", color: "text-green-600" };
+    const spotsLeft =
+      activity.capacity - (activity.enrolled || 0);
+    if (spotsLeft <= 0)
+      return { text: "Full", color: "text-red-600" };
+    if (spotsLeft <= 5)
+      return {
+        text: `${spotsLeft} spots left`,
+        color: "text-orange-600",
+      };
+    return { text: "Available", color: "text-green-600" };
+  };
+
+  const toggleSDG = (sdgNumber: number) => {
+    setSelectedSDGs((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sdgNumber)) {
+        newSet.delete(sdgNumber);
+      } else {
+        newSet.add(sdgNumber);
+      }
+      return newSet;
+    });
+  };
+
+  const clearAllSDGs = () => {
+    setSelectedSDGs(new Set());
+  };
+
+  const selectAllSDGs = () => {
+    setSelectedSDGs(new Set(SDG_GOALS.map((g) => g.number)));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+            SDG Activities
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Discover and register for sustainable development activities 🎯
+          </p>
+        </div>
+      </div>
+
+      {/* Search and Filters Card */}
+      <Card className="p-6 shadow-md">
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by title, SDG number, or keyword..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 shrink-0">
+                  <Filter className="h-4 w-4" />
+                  SDG Filters
+                  {selectedSDGs.size > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {selectedSDGs.size}
+                    </Badge>
+                  )}
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80 max-h-[500px] overflow-y-auto" align="end">
+                <DropdownMenuLabel className="flex items-center justify-between">
+                  <span>Filter by SDG Goals</span>
+                  {selectedSDGs.size > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearAllSDGs}
+                      className="h-auto p-1 text-xs"
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    if (selectedSDGs.size === SDG_GOALS.length) {
+                      clearAllSDGs();
+                    } else {
+                      selectAllSDGs();
+                    }
+                  }}
+                  className="cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <div className="inline-flex h-5 w-5 items-center justify-center rounded border-2 text-xs">
+                      {selectedSDGs.size === SDG_GOALS.length && "✓"}
+                    </div>
+                    {selectedSDGs.size === SDG_GOALS.length
+                      ? "Deselect All"
+                      : "Select All"}
+                  </span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {SDG_GOALS.map((sdg) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={sdg.number}
+                      checked={selectedSDGs.has(sdg.number)}
+                      onCheckedChange={() => toggleSDG(sdg.number)}
+                      onSelect={(e) => e.preventDefault()}
+                      className="capitalize cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="inline-flex h-5 w-5 items-center justify-center rounded text-xs font-medium text-white shrink-0"
+                          style={{ backgroundColor: sdg.color }}
+                        >
+                          {sdg.number}
+                        </span>
+                        <span className="text-sm">{sdg.name}</span>
+                      </span>
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Results and Active Filters */}
+          <div className="flex items-center justify-between flex-wrap gap-3 pt-2 border-t">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="font-semibold">
+                {filteredActivities.length} {filteredActivities.length === 1 ? "activity" : "activities"}
+              </Badge>
+              {selectedSDGs.size > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  with {selectedSDGs.size} SDG {selectedSDGs.size === 1 ? "filter" : "filters"}
+                </span>
+              )}
+            </div>
+
+            {/* Active Filter Pills */}
+            {selectedSDGs.size > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {Array.from(selectedSDGs).sort((a, b) => a - b).slice(0, 3).map((sdgNum) => {
+                  const goal = SDG_GOALS.find((g) => g.number === sdgNum);
+                  return (
+                    <Badge
+                      key={sdgNum}
+                      variant="outline"
+                      className="gap-1 pl-1"
+                      style={{ borderColor: goal?.color }}
+                    >
+                      <span
+                        className="inline-flex h-4 w-4 items-center justify-center rounded text-xs text-white font-bold"
+                        style={{ backgroundColor: goal?.color }}
+                      >
+                        {sdgNum}
+                      </span>
+                      <button
+                        onClick={() => toggleSDG(sdgNum)}
+                        className="ml-1 hover:bg-accent rounded-full p-0.5"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  );
+                })}
+                {selectedSDGs.size > 3 && (
+                  <Badge variant="outline">+{selectedSDGs.size - 3} more</Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllSDGs}
+                  className="h-6 px-2 text-xs"
+                >
+                  Clear all
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      {/* Activities by Category Sections */}
+      <div className="space-y-8">
+        {(['coursework', 'society', 'event'] as const).map((category) => {
+          const categoryActivities = filteredActivities.filter(
+            (activity) => activity.category === category
+          );
+
+          if (categoryActivities.length === 0) {
+            return null;
+          }
+
+          return (
+            <div key={category} className="space-y-4">
+              {/* Section Header */}
+              <div className="flex items-center gap-3 pb-2">
+                <div className={`p-2.5 rounded-xl ${getCategoryColor(category)} text-white shadow-md`}>
+                  {getCategoryIcon(category)}
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold capitalize">{category}</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {categoryActivities.length} available {categoryActivities.length === 1 ? 'activity' : 'activities'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Activities Grid for this category */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                {categoryActivities.map((activity) => {
+                  const availability = getAvailabilityStatus(activity);
+                  const isRegistered = registeredActivities.has(
+                    activity.id,
+                  );
+                  const isFull =
+                    activity.capacity &&
+                    activity.enrolled &&
+                    activity.enrolled >= activity.capacity;
+
+                  return (
+                    <Card
+                      key={activity.id}
+                      className="group overflow-hidden transition-all shadow-md"
+                      style={{ borderLeftColor: getCategoryColor(activity.category).replace('bg-', '#').replace('yellow-500', '#eab308').replace('blue-500', '#3b82f6').replace('purple-500', '#a855f7') }}
+                    >
+                      {/* Image */}
+                      {activity.imageUrl && (
+                        <div className="relative h-40 overflow-hidden bg-muted">
+                          <ImageWithFallback
+                            src={activity.imageUrl}
+                            alt={activity.title}
+                            className="w-full h-full object-cover  transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/0 to-black/0" />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(activity.id);
+                            }}
+                            className="absolute top-2 right-2 p-1.5 bg-background/90 backdrop-blur-sm rounded-full hover:bg-background transition-colors shadow-md z-10"
+                            aria-label={isFavorite(activity.id) ? 'Remove from favorites' : 'Add to favorites'}
+                          >
+                            <Heart
+                              className={`h-4 w-4 ${isFavorite(activity.id)
+                                ? 'fill-red-500 text-red-500'
+                                : 'text-muted-foreground'
+                                }`}
+                            />
+                          </button>
+                          {/* Points badge on image */}
+                          <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                            {activity.pointsBreakdown && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button className="p-1.5 bg-background/90 backdrop-blur-sm rounded-full hover:bg-background transition-colors shadow-md">
+                                      <Info className="h-3.5 w-3.5 text-amber-600" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left" className="max-w-xs bg-white shadow-lg text-black"
+                                    arrowStyle={{ backgroundColor: "#FFFFFF", fill: "#FFFFFF" }}>
+                                    <div className="space-y-2 text-xs">
+                                      <p className="font-semibold">Points Breakdown:</p>
+                                      <div className="space-y-1">
+                                        <div className="flex justify-between">
+                                          <span>Time ({activity.pointsBreakdown.timeCommitment / 10}h):</span>
+                                          <span className="font-semibold">{activity.pointsBreakdown.timeCommitment} pts</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span>Difficulty (Level {activity.pointsBreakdown.difficulty / 20}):</span>
+                                          <span className="font-semibold">{activity.pointsBreakdown.difficulty} pts</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span>SDG Impact ({activity.sdgGoals.length} goals):</span>
+                                          <span className="font-semibold">{activity.pointsBreakdown.sdgImpact} pts</span>
+                                        </div>
+                                        <div className="border-t pt-1 flex justify-between font-bold">
+                                          <span>Total:</span>
+                                          <span>{activity.pointsBreakdown.total} pts</span>
+                                        </div>
+                                      </div>
+                                      {activity.pointsBreakdown.explanation && (
+                                        <p className="text-muted-foreground italic pt-1 border-t">
+                                          {activity.pointsBreakdown.explanation}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                            <Badge className="bg-amber-600 hover:bg-amber-700 shadow-lg">
+                              <Award className="w-3 h-3 mr-1" />
+                              {activity.pointsBreakdown?.total ?? activity.points} pts
+                            </Badge>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Content */}
+                      <div className="p-4 space-y-3">
+                        {/* Title and Description */}
+                        <div>
+                          <h3 className="font-bold text-base line-clamp-2 mb-1">
+                            {activity.title}
+                          </h3>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {activity.description}
+                          </p>
+                        </div>
+
+                        {/* SDG Goals - Compact */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {[...activity.sdgGoals].sort((a, b) => a - b).map((goalNum) => {
+                            const goal = SDG_GOALS.find((g) => g.number === goalNum);
+                            return (
+                              <TooltipProvider key={goalNum}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div
+                                      className="h-6 w-6 rounded flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm hover:scale-110 transition-transform cursor-help"
+                                      style={{ backgroundColor: goal?.color }}
+                                    >
+                                      {goalNum}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    className="border-0"
+                                    style={{ backgroundColor: goal?.color }}
+                                    arrowStyle={{ backgroundColor: goal?.color, fill: goal?.color }}
+                                  >
+                                    <p className="text-xs font-medium text-white">SDG {goalNum}: {goal?.name}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            );
+                          })}
+                        </div>
+
+                        {/* Info - Compact */}
+                        <div className="space-y-1.5 text-xs">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <User2 className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{activity.organizer}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{activity.location}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">
+                              {new Date(activity.startDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Capacity Bar - Compact */}
+                        {activity.capacity && (
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-muted-foreground">
+                                {activity.enrolled || 0}/{activity.capacity}
+                              </span>
+                              <span className={`font-medium ${availability.color}`}>
+                                {availability.text}
+                              </span>
+                            </div>
+                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all ${isFull
+                                  ? "bg-red-500"
+                                  : (activity.enrolled || 0) / activity.capacity > 0.8
+                                    ? "bg-orange-500"
+                                    : "bg-green-500"
+                                  }`}
+                                style={{
+                                  width: `${Math.min(((activity.enrolled || 0) / activity.capacity) * 100, 100)}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-1">
+                          {isRegistered ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 h-8"
+                              disabled
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+                              Registered
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => handleRegister(activity)}
+                              size="sm"
+                              className="flex-1 h-8 bg-linear-to-r from-[#FFE600] to-[#ffd700] hover:from-[#ffd700] hover:to-[#FFE600] text-[#231F20] font-semibold"
+                              disabled={Boolean(isFull)}
+                            >
+                              {isFull ? "Full" : "Register"}
+                            </Button>
+                          )}
+                          <ShareDialog
+                            title={activity.title}
+                            description={`${activity.category} activity - ${activity.pointsBreakdown?.total ?? activity.points} SDG points`}
+                            url={`https://sdggo.edu/activities/${activity.id}`}
+                            iconOnly
+                          />
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Registration Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Confirm Registration</DialogTitle>
+            <DialogDescription>
+              Review the activity details and confirm your registration
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedActivity && (
+            <div className="space-y-4 py-2">
+              {/* Image */}
+              {selectedActivity.imageUrl && (
+                <div className="relative h-48 rounded-xl overflow-hidden border">
+                  <ImageWithFallback
+                    src={selectedActivity.imageUrl}
+                    alt={selectedActivity.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/0 to-black/0" />
+                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                    <Badge className={`${getCategoryColor(selectedActivity.category)} text-white border-0 capitalize`}>
+                      {getCategoryIcon(selectedActivity.category)}
+                      <span className="ml-1.5">{selectedActivity.category}</span>
+                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-amber-600 hover:bg-amber-700 text-white border-0">
+                        <Award className="w-3 h-3 mr-1" />
+                        {selectedActivity.pointsBreakdown?.total ?? selectedActivity.points} points
+                      </Badge>
+                      {selectedActivity.pointsBreakdown && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button className="p-1 bg-amber-600/20 backdrop-blur-sm rounded-full hover:bg-amber-600/30 transition-colors">
+                                <Info className="h-3.5 w-3.5 text-white" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">View points breakdown below</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Title and Description */}
+              <div>
+                <h3 className="text-xl font-bold mb-2">{selectedActivity.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {selectedActivity.description}
+                </p>
+              </div>
+
+              {/* Points Breakdown */}
+              {selectedActivity.pointsBreakdown && (
+                <Card className="p-4 bg-amber-50/50 border-amber-200">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Info className="h-4 w-4 text-amber-600" />
+                      <p className="text-sm font-semibold">How Points Are Calculated</p>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">
+                          Time Commitment ({selectedActivity.pointsBreakdown.timeCommitment / 10} hours)
+                        </span>
+                        <Badge variant="secondary">{selectedActivity.pointsBreakdown.timeCommitment} pts</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">
+                          Difficulty (Level {selectedActivity.pointsBreakdown.difficulty / 20})
+                        </span>
+                        <Badge variant="secondary">{selectedActivity.pointsBreakdown.difficulty} pts</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">
+                          SDG Impact ({selectedActivity.sdgGoals.length} goals)
+                        </span>
+                        <Badge variant="secondary">{selectedActivity.pointsBreakdown.sdgImpact} pts</Badge>
+                      </div>
+                      <div className="border-t pt-2 mt-2 flex justify-between items-center font-semibold">
+                        <span>Total Points</span>
+                        <Badge className="bg-amber-600 text-white">{selectedActivity.pointsBreakdown.total} pts</Badge>
+                      </div>
+                      {selectedActivity.pointsBreakdown.explanation && (
+                        <div className="pt-2 border-t">
+                          <p className="text-xs text-muted-foreground italic">
+                            {selectedActivity.pointsBreakdown.explanation}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* SDG Goals */}
+              <div>
+                <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <span className="h-1 w-1 rounded-full bg-primary" />
+                  Related SDG Goals
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[...selectedActivity.sdgGoals].sort((a, b) => a - b).map((goalNum) => {
+                    const goal = SDG_GOALS.find((g) => g.number === goalNum);
+                    return (
+                      <div
+                        key={goalNum}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-background/50 hover:bg-background transition-colors"
+                      >
+                        <div
+                          className="h-5 w-5 rounded flex items-center justify-center text-xs text-white font-bold"
+                          style={{ backgroundColor: goal?.color }}
+                        >
+                          {goalNum}
+                        </div>
+                        <span className="text-sm font-medium">{goal?.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Start Date
+                  </p>
+                  <p className="text-sm font-medium">
+                    {new Date(selectedActivity.startDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </Card>
+                {selectedActivity.endDate && (
+                  <Card className="p-3">
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5" />
+                      End Date
+                    </p>
+                    <p className="text-sm font-medium">
+                      {new Date(selectedActivity.endDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </Card>
+                )}
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Location
+                  </p>
+                  <p className="text-sm font-medium">{selectedActivity.location}</p>
+                </Card>
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5">
+                    <User2 className="h-3.5 w-3.5" />
+                    Organizer
+                  </p>
+                  <p className="text-sm font-medium">{selectedActivity.organizer}</p>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmRegistration}
+              className="bg-linear-to-r from-[#FFE600] to-[#ffd700] hover:from-[#ffd700] hover:to-[#FFE600] text-[#231F20] font-semibold"
+            >
+              Confirm Registration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
