@@ -300,6 +300,21 @@ export const currentUser: Student = {
       status: "attended",
       registeredDate: "2024-09-01",
       attendedDate: "2024-09-15",
+      feedback: {
+        overallRating: 4,
+        contentRating: 4,
+        organizationRating: 4,
+        speakersRating: 5,
+        venueRating: 3,
+        likedMost:
+          "The expert panel discussion on regenerative agriculture was fascinating. Real-world case studies were particularly valuable.",
+        improvements:
+          "Could use better catering options - more sustainable food choices would align with the event theme.",
+        wouldRecommend: true,
+        additionalComments:
+          "Great networking opportunity with agriculture professionals. Would love to see a follow-up event.",
+        submittedDate: "2024-09-16",
+      },
     },
   ],
   vouchers: [

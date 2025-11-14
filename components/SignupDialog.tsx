@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from './ui/select';
 import { UserPlus, GraduationCap } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface SignupDialogProps {
   open: boolean;
@@ -37,7 +36,7 @@ const FACULTIES = [
   'School of Computer Science & Engineering',
 ];
 
-export function SignupDialog({ open, onSignup, onSkip }: SignupDialogProps) {
+export function SignupDialog({ open, onSignup }: SignupDialogProps) {
   const [name, setName] = useState('');
   const [studentId, setStudentId] = useState('');
   const [faculty, setFaculty] = useState('');
@@ -46,7 +45,7 @@ export function SignupDialog({ open, onSignup, onSkip }: SignupDialogProps) {
 
   const validateStudentId = (id: string): boolean => {
     // Format: Z followed by 7 digits (e.g., Z1234567)
-    const studentIdRegex = /^Z\d{7}$/;
+    const studentIdRegex = /^z\d{7}$/;
     return studentIdRegex.test(id);
   };
 
@@ -92,7 +91,7 @@ export function SignupDialog({ open, onSignup, onSkip }: SignupDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={() => { }}>
       <DialogContent className="max-w-md" showCloseButton={false}>
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-center mb-2">
@@ -134,7 +133,7 @@ export function SignupDialog({ open, onSignup, onSkip }: SignupDialogProps) {
             </Label>
             <Input
               id="signup-student-id"
-              placeholder="Z1234567"
+              placeholder="z1234567"
               value={studentId}
               onChange={(e) => {
                 setStudentId(e.target.value);
@@ -147,7 +146,7 @@ export function SignupDialog({ open, onSignup, onSkip }: SignupDialogProps) {
               <p className="text-sm text-destructive">{errors.studentId}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              Format: Z followed by 7 digits
+              Format: z followed by 7 digits
             </p>
           </div>
 
@@ -205,11 +204,6 @@ export function SignupDialog({ open, onSignup, onSkip }: SignupDialogProps) {
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
-          {onSkip && (
-            <Button variant="outline" onClick={onSkip} className="w-full sm:w-auto">
-              Skip for Now
-            </Button>
-          )}
           <Button onClick={handleSubmit} className="w-full sm:flex-1">
             Continue
           </Button>

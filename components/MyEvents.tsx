@@ -11,6 +11,7 @@ import { currentUser } from '@/data/mockData';
 import { UserEvent, SDG_GOALS, EventFeedback } from '@/types';
 import { Calendar, MapPin, Users, Star, MessageSquare, Award, ThumbsUp, ThumbsDown, Heart } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 const FAVORITES_STORAGE_KEY = 'sdg-favorite-events';
 
@@ -125,17 +126,17 @@ export function MyEvents() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
             My Events
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
             Manage your registered events and track your attendance 📅
           </p>
         </div>
       </div>
 
       {/* Tabs for Upcoming, History, and Favorites */}
-      <Card className="p-5 shadow-md">
+      <Card className="p-4 md:p-5 shadow-md">
         <Tabs defaultValue="upcoming">
           <TabsList className="grid w-full max-w-2xl grid-cols-3 mb-4">
             <TabsTrigger value="upcoming" className="flex items-center gap-2">
@@ -177,7 +178,7 @@ export function MyEvents() {
                             <Calendar className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <h2 className="text-lg font-bold">{formatDateHeader(date)}</h2>
+                            <h2 className="text-base md:text-lg font-bold">{formatDateHeader(date)}</h2>
                             <div className="flex items-center gap-2 mt-1">
                               {daysUntil === 0 && (
                                 <Badge className="bg-primary">Today</Badge>
@@ -212,10 +213,12 @@ export function MyEvents() {
                                 {/* Event Image */}
                                 {event.imageUrl && (
                                   <div className="md:w-40 h-32 md:h-auto shrink-0 bg-muted relative overflow-hidden">
-                                    <img
+                                    <Image
                                       src={event.imageUrl}
                                       alt={event.title}
                                       className="w-full h-full object-cover transition-transform duration-300"
+                                      width={160}
+                                      height={120}
                                     />
                                     <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/0 to-black/0" />
                                     <div className="absolute top-2 right-2 flex items-center gap-1.5">
@@ -636,10 +639,12 @@ export function MyEvents() {
                                 {/* Event Image */}
                                 {event.imageUrl && (
                                   <div className={`md:w-48 h-40 md:h-auto shrink-0 bg-muted relative overflow-hidden ${isPast ? 'opacity-60' : ''}`}>
-                                    <img
+                                    <Image
                                       src={event.imageUrl}
                                       alt={event.title}
                                       className={`w-full h-full object-cover transition-transform duration-300 ${isPast ? 'grayscale' : 'group-hover:scale-105'}`}
+                                      width={160}
+                                      height={120}
                                     />
                                     <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/0 to-black/0" />
                                     <div className="absolute top-2 right-2 flex items-center gap-1.5">

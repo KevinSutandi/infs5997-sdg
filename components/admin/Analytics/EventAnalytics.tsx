@@ -8,14 +8,34 @@ import { Input } from '../../ui/input';
 import { Progress } from '../../ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../ui/tabs';
-import { getEventAnalytics } from '@/lib/adminAnalytics';
-import { Download, Search, Star, Users, Heart, TrendingUp, Award, Target, AlertCircle } from 'lucide-react';
+import { getEventAnalytics, getAllRegisteredEvents } from '@/lib/adminAnalytics';
+import { Download, Search, Star, Users, Heart, TrendingUp, Award, Target, AlertCircle, MessageSquare, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 export function EventAnalytics() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'registered' | 'attended' | 'rating' | 'favorites'>('registered');
+  const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'positive' | 'negative'>('all');
 
   const eventData = getEventAnalytics();
+  const allEvents = getAllRegisteredEvents();
+
+  // Collect all feedback
+  const allFeedback = allEvents
+    .filter((event) => event.status === 'attended' && event.feedback)
+    .map((event) => ({
+      ...event.feedback!,
+      eventTitle: event.title,
+      eventId: event.activityId,
+      organizer: event.organizer,
+      attendedDate: event.attendedDate || '',
+    }));
+
+  // Filter feedback
+  const filteredFeedback = allFeedback.filter((feedback) => {
+    if (feedbackFilter === 'positive') return feedback.overallRating >= 4;
+    if (feedbackFilter === 'negative') return feedback.overallRating < 4;
+    return true;
+  });
 
   // Filter and sort
   const filteredData = eventData.filter(event => {
@@ -174,6 +194,10 @@ export function EventAnalytics() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="performance">Performance Analysis</TabsTrigger>
+          <TabsTrigger value="feedback">
+            <MessageSquare className="h-4 w-4 mr-1.5" />
+            Feedback ({allFeedback.length})
+          </TabsTrigger>
           <TabsTrigger value="organizers">Organizers</TabsTrigger>
           <TabsTrigger value="details">Detailed Table</TabsTrigger>
         </TabsList>
@@ -394,6 +418,194 @@ export function EventAnalytics() {
                 ))}
             </div>
           </Card>
+        </TabsContent>
+
+        {/* Feedback Tab */}
+        <TabsContent value="feedback" className="space-y-6">
+          {/* Feedback Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <MessageSquare className="h-5 w-5 text-blue-600" />
+              </div>
+              <p className="text-2xl font-bold">{allFeedback.length}</p>
+              <p className="text-sm text-muted-foreground">Total Feedback Received</p>
+            </Card>
+
+            <Card className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <ThumbsUp className="h-5 w-5 text-green-600" />
+              </div>
+              <p className="text-2xl font-bold">
+                {allFeedback.filter((f) => f.overallRating >= 4).length}
+              </p>
+              <p className="text-sm text-muted-foreground">Positive Reviews (≥4 stars)</p>
+              <Progress
+                value={(allFeedback.filter((f) => f.overallRating >= 4).length / allFeedback.length) * 100}
+                className="h-2 mt-2"
+              />
+            </Card>
+
+            <Card className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <ThumbsDown className="h-5 w-5 text-orange-600" />
+              </div>
+              <p className="text-2xl font-bold">
+                {allFeedback.filter((f) => f.overallRating < 4).length}
+              </p>
+              <p className="text-sm text-muted-foreground">Needs Improvement (&lt;4 stars)</p>
+              <Progress
+                value={(allFeedback.filter((f) => f.overallRating < 4).length / allFeedback.length) * 100}
+                className="h-2 mt-2"
+              />
+            </Card>
+          </div>
+
+          {/* Feedback Filter */}
+          <Card className="p-4 bg-muted/30">
+            <div className="flex items-center gap-4">
+              <p className="text-sm font-medium">Filter by:</p>
+              <div className="flex gap-2">
+                <Button
+                  variant={feedbackFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFeedbackFilter('all')}
+                >
+                  All ({allFeedback.length})
+                </Button>
+                <Button
+                  variant={feedbackFilter === 'positive' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFeedbackFilter('positive')}
+                  className={feedbackFilter === 'positive' ? 'bg-green-600 hover:bg-green-700' : ''}
+                >
+                  <ThumbsUp className="h-3 w-3 mr-1.5" />
+                  Positive ({allFeedback.filter((f) => f.overallRating >= 4).length})
+                </Button>
+                <Button
+                  variant={feedbackFilter === 'negative' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFeedbackFilter('negative')}
+                  className={feedbackFilter === 'negative' ? 'bg-orange-600 hover:bg-orange-700' : ''}
+                >
+                  <ThumbsDown className="h-3 w-3 mr-1.5" />
+                  Needs Attention ({allFeedback.filter((f) => f.overallRating < 4).length})
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Feedback Cards */}
+          <div className="space-y-4">
+            {filteredFeedback.length > 0 ? (
+              filteredFeedback.map((feedback, index) => (
+                <Card key={index} className="p-6">
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{feedback.eventTitle}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {feedback.organizer} • Attended: {new Date(feedback.attendedDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-full">
+                          <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                          <span className="font-bold text-amber-700">{feedback.overallRating.toFixed(1)}</span>
+                        </div>
+                        {feedback.wouldRecommend && (
+                          <Badge variant="outline" className="text-green-700 border-green-700">
+                            <ThumbsUp className="h-3 w-3 mr-1" />
+                            Recommended
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Rating Breakdown */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg">
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Content</p>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                          <span className="text-sm font-semibold">{feedback.contentRating}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Organization</p>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                          <span className="text-sm font-semibold">{feedback.organizationRating}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Speakers</p>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                          <span className="text-sm font-semibold">{feedback.speakersRating}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Venue</p>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                          <span className="text-sm font-semibold">{feedback.venueRating}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Feedback Text */}
+                    <div className="space-y-3">
+                      {feedback.likedMost && (
+                        <div>
+                          <p className="text-sm font-semibold text-green-700 mb-1">What they liked most:</p>
+                          <p className="text-sm text-muted-foreground bg-green-50 p-3 rounded-md">
+                            &ldquo;{feedback.likedMost}&rdquo;
+                          </p>
+                        </div>
+                      )}
+                      {feedback.improvements && (
+                        <div>
+                          <p className="text-sm font-semibold text-orange-700 mb-1">Suggested improvements:</p>
+                          <p className="text-sm text-muted-foreground bg-orange-50 p-3 rounded-md">
+                            &ldquo;{feedback.improvements}&rdquo;
+                          </p>
+                        </div>
+                      )}
+                      {feedback.additionalComments && (
+                        <div>
+                          <p className="text-sm font-semibold mb-1">Additional comments:</p>
+                          <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md">
+                            &ldquo;{feedback.additionalComments}&rdquo;
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-3 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        Submitted: {new Date(feedback.submittedDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <Card className="p-12 text-center">
+                <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg font-semibold mb-2">No feedback found</p>
+                <p className="text-sm text-muted-foreground">
+                  {feedbackFilter === 'all'
+                    ? 'No feedback has been submitted yet.'
+                    : feedbackFilter === 'positive'
+                      ? 'No positive feedback found.'
+                      : 'No negative feedback found.'}
+                </p>
+              </Card>
+            )}
+          </div>
         </TabsContent>
 
         {/* Organizers Tab */}

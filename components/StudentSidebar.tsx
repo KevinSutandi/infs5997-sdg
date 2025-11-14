@@ -33,7 +33,11 @@ const navItems: NavItem[] = [
   { title: 'Redeem Store', value: 'redeem', href: '/redeem', icon: ShoppingBag, section: 'shop' },
 ];
 
-export function StudentSidebar() {
+interface StudentSidebarProps {
+  onLinkClick?: () => void;
+}
+
+export function StudentSidebar({ onLinkClick }: StudentSidebarProps = {}) {
   const pathname = usePathname();
 
   // Determine active tab from pathname
@@ -52,7 +56,7 @@ export function StudentSidebar() {
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="pb-4 border-b">
-          <Link href="/" className="flex items-center gap-3 mb-2 cursor-pointer">
+          <Link href="/" onClick={onLinkClick} className="flex items-center gap-3 mb-2 cursor-pointer">
             <div className="h-10 w-10 rounded-lg bg-linear-to-br from-[#FFE600] to-[#ffd700] flex items-center justify-center shadow-md">
               <Trophy className="h-5 w-5 text-[#231F20]" />
             </div>
@@ -64,7 +68,7 @@ export function StudentSidebar() {
 
         {/* User Profile Section */}
         <div className="pb-4 border-b">
-          <Link href="/settings" className="relative group cursor-pointer block">
+          <Link href="/settings" onClick={onLinkClick} className="relative group cursor-pointer block">
             {/* Profile Content */}
             <div className="flex items-center gap-3 p-3 rounded-lg bg-linear-to-br from-[#FFE600]/10 to-[#ffd700]/5 border border-[#FFE600]/20 transition-all duration-300 relative z-0">
               <Avatar className="h-12 w-12 ring-2 ring-[#FFE600]/50">
@@ -108,6 +112,7 @@ export function StudentSidebar() {
                     <Link
                       key={item.value}
                       href={item.href}
+                      onClick={onLinkClick}
                       className={cn(
                         'w-full flex items-center cursor-pointer gap-3 px-3 py-2.5 rounded-lg transition-all group',
                         isActive
@@ -140,6 +145,7 @@ export function StudentSidebar() {
                     <Link
                       key={item.value}
                       href={item.href}
+                      onClick={onLinkClick}
                       className={cn(
                         'w-full flex items-center cursor-pointer gap-3 px-3 py-2.5 rounded-lg transition-all group',
                         isActive
@@ -172,6 +178,7 @@ export function StudentSidebar() {
                     <Link
                       key={item.value}
                       href={item.href}
+                      onClick={onLinkClick}
                       className={cn(
                         'w-full flex items-center cursor-pointer gap-3 px-3 py-2.5 rounded-lg transition-all group',
                         isActive
@@ -193,7 +200,7 @@ export function StudentSidebar() {
 
         {/* Admin Link */}
         <div className="mt-auto pt-6 border-t">
-          <Link href="/admin" className="cursor-pointer">
+          <Link href="/admin" onClick={onLinkClick} className="cursor-pointer">
             <Button variant="outline" className="w-full justify-start hover:bg-accent transition-all cursor-pointer">
               <Shield className="h-4 w-4 mr-2" />
               Admin Dashboard

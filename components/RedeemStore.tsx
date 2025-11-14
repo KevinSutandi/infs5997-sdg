@@ -32,6 +32,7 @@ import {
   Minus,
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from 'next/image';
 
 export function RedeemStore() {
   const [selectedCategory, setSelectedCategory] =
@@ -127,34 +128,34 @@ export function RedeemStore() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
             Redeem Store
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
             Exchange your SDG points for exclusive rewards 🎁
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <Button
             variant="outline"
             onClick={() => setIsVouchersDialogOpen(true)}
-            className="flex items-center gap-2 hover:bg-accent transition-colors"
+            className="flex items-center justify-center gap-2 hover:bg-accent transition-colors w-full sm:w-auto"
           >
             <Ticket className="h-4 w-4" />
             My Vouchers
           </Button>
-          <Card className="p-4 hover:shadow-lg transition-all bg-linear-to-br from-amber-500/10 via-amber-500/5 to-background border-amber-500/20 border-2">
+          <Card className="p-3 md:p-4 hover:shadow-lg transition-all bg-linear-to-br from-amber-500/10 via-amber-500/5 to-background border-amber-500/20 border-2">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs text-muted-foreground font-medium mb-1">
                   Available Points
                 </p>
-                <p className="text-3xl font-black bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+                <p className="text-2xl md:text-3xl font-black bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
                   {currentUser.totalPoints.toLocaleString()}
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                <Trophy className="h-6 w-6 text-amber-600" />
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                <Trophy className="h-5 w-5 md:h-6 md:w-6 text-amber-600" />
               </div>
             </div>
           </Card>
@@ -162,7 +163,7 @@ export function RedeemStore() {
       </div>
 
       {/* Search and Category Filters */}
-      <Card className="p-4 space-y-4">
+      <Card className="p-4 md:p-6 space-y-4">
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -243,10 +244,12 @@ export function RedeemStore() {
             >
               {/* Image */}
               <div className="relative h-56 overflow-hidden bg-muted">
-                <img
+                <Image
                   src={reward.imageUrl}
                   alt={reward.title}
-                  className="w-full h-full object-cover transition-transform duration-500 aspect-video"
+                  className="w-full h-full object-cover transition-transform duration-500"
+                  width={1000}
+                  height={800}
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/50 via-black/0 to-black/0" />
                 {isLowStock && (
@@ -383,12 +386,14 @@ export function RedeemStore() {
             <div className="space-y-2 py-4">
               {/* Reward Image Preview */}
               <div className="relative h-32 overflow-hidden rounded-lg bg-muted">
-                <img
+                <Image
                   src={selectedReward.imageUrl}
                   alt={selectedReward.title}
                   className="w-full h-full object-cover"
+                  width={1000}
+                  height={800}
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/0 to-black/0" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/0 to-black/0" />
                 <div className="absolute bottom-3 left-3 right-3">
                   <h4 className="text-white font-bold text-lg">{selectedReward.title}</h4>
                 </div>

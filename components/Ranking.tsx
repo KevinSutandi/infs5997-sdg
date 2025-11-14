@@ -200,17 +200,17 @@ export function Ranking() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
             Leaderboard
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
             Top contributors to sustainable development goals 🏆
           </p>
         </div>
       </div>
 
       {/* Search and Filters Card */}
-      <Card className="p-6 shadow-md">
+      <Card className="p-4 md:p-6 shadow-md">
         <div className="space-y-4">
           {/* Search Bar */}
           <div className="relative">
@@ -312,10 +312,10 @@ export function Ranking() {
       {filteredStudents.length >= 3 && (
         <div>
           <div className="text-center mb-4">
-            <h2 className="text-2xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+            <h2 className="text-xl md:text-2xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
               🏆 Top Contributors
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">Leading the way in sustainable development</p>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">Leading the way in sustainable development</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:items-end">
             {filteredStudents.slice(0, 3).map((student, index) => {
@@ -407,7 +407,7 @@ export function Ranking() {
             return (
               <div
                 key={student.id}
-                className={`flex items-center gap-4 p-4 rounded-xl transition-all group ${isCurrentUser
+                className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl transition-all group ${isCurrentUser
                   ? 'bg-linear-to-r from-primary/10 to-primary/5 border-2 border-primary hover:shadow-lg hover:shadow-primary/20'
                   : isTopThree
                     ? 'bg-linear-to-r from-amber-500/5 to-background border border-amber-500/20 hover:shadow-lg hover:border-amber-500/40'
@@ -460,8 +460,8 @@ export function Ranking() {
                 </div>
 
                 {/* Points */}
-                <div className="text-right shrink-0 min-w-[100px]">
-                  <p className={`text-2xl font-black transition-colors ${isTopThree ? 'text-amber-600' : 'text-foreground'
+                <div className="text-left sm:text-right shrink-0 w-full sm:w-auto sm:min-w-[100px]">
+                  <p className={`text-xl sm:text-2xl font-black transition-colors ${isTopThree ? 'text-amber-600' : 'text-foreground'
                     }`}>
                     {getPointsForTimeFilter(student).toLocaleString()}
                   </p>
@@ -472,7 +472,7 @@ export function Ranking() {
 
                 {/* Follow Button */}
                 {!isCurrentUser && (
-                  <div className="shrink-0">
+                  <div className="shrink-0 w-full sm:w-auto">
                     <Button
                       variant={followedUsers.includes(student.id) ? 'outline' : 'default'}
                       size="sm"

@@ -12,6 +12,9 @@ import {
   UserSignupData,
 } from "@/components/SignupDialog";
 import { Toaster } from "@/components/ui/sonner";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 const CONSENT_STORAGE_KEY = "sdg-platform-consent";
 const SIGNUP_STORAGE_KEY = "sdg-platform-signup";
@@ -35,6 +38,7 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
     return false;
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -144,13 +148,34 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
   return (
     <div className="min-h-screen bg-linear-to-br from-background via-[#FFE600]/5 to-background">
       <div className="flex">
-        {/* Sidebar */}
-        <StudentSidebar />
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <StudentSidebar />
+        </div>
+
+        {/* Mobile Sidebar Sheet */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="left" className="w-64 p-0">
+            <StudentSidebar onLinkClick={() => setMobileMenuOpen(false)} />
+          </SheetContent>
+        </Sheet>
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
+          {/* Mobile Menu Button */}
+          <div className="md:hidden sticky top-0 z-40 bg-background border-b p-4">
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+            </Sheet>
+          </div>
+
           {/* Page Content */}
-          <div className="p-8 pt-12 max-w-[1600px] mx-auto">
+          <div className="p-4 pt-6 md:p-8 md:pt-12 max-w-[1600px] mx-auto">
             {children}
           </div>
         </main>

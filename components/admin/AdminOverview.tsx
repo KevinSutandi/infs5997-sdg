@@ -2,6 +2,7 @@
 
 import { Card } from '../ui/card';
 import { Progress } from '../ui/progress';
+import { Button } from '../ui/button';
 import {
   TrendingUp,
   Users,
@@ -12,13 +13,19 @@ import {
   ArrowDown,
   Target,
   Activity,
+  FileText,
+  Download,
 } from 'lucide-react';
-import { getDashboardOverview, getSDGAnalytics, getEventAnalytics } from '@/lib/adminAnalytics';
+import { getDashboardOverview, getSDGAnalytics, getEventAnalytics, getFacultyAnalytics, getActivityTypeAnalytics } from '@/lib/adminAnalytics';
+import { generatePDFReport } from '@/lib/pdfGenerator';
+import { toast } from 'sonner';
 
 export function AdminOverview() {
   const overview = getDashboardOverview();
   const sdgData = getSDGAnalytics();
   const eventData = getEventAnalytics();
+  const facultyData = getFacultyAnalytics();
+  const activityTypeData = getActivityTypeAnalytics();
 
   // Calculate trends (mock data - in real app would compare with previous period)
   const trends = {
@@ -36,14 +43,60 @@ export function AdminOverview() {
     ? ((overview.totalActivities / overview.totalStudents) * 100).toFixed(1)
     : 0);
 
+  const handleGenerateReport = async () => {
+    try {
+      toast.loading('Generating PDF report...', { id: 'pdf-report' });
+      
+      // Calculate total points for percentage
+      const totalSDGPoints = sdgData.reduce((sum, sdg) => sum + sdg.totalPoints, 0);
+      
+      // Prepare SDG data with percentages
+      const sdgDataWithPercent = sdgData.map(sdg => ({
+        ...sdg,
+        percentOfTotal: totalSDGPoints > 0 ? (sdg.totalPoints / totalSDGPoints) * 100 : 0,
+      }));
+      
+      // Prepare faculty data
+      const facultyDataFormatted = Array.from(facultyData.values()).map(faculty => ({
+        faculty: faculty.faculty,
+        students: faculty.totalStudents,
+        totalPoints: faculty.totalPoints,
+        avgPointsPerStudent: faculty.averagePoints,
+      }));
+      
+      await generatePDFReport({
+        overview,
+        sdgData: sdgDataWithPercent,
+        eventData,
+        facultyData: facultyDataFormatted,
+        activityTypeBreakdown: activityTypeData,
+        engagementRate: Number(engagementRate),
+      });
+      toast.success('PDF report generated successfully!', { id: 'pdf-report' });
+    } catch (error) {
+      toast.error('Failed to generate PDF report', { id: 'pdf-report' });
+      console.error('PDF generation error:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Dashboard Overview</h1>
-        <p className="text-muted-foreground">
-          Monitor key metrics and platform performance
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Dashboard Overview</h1>
+          <p className="text-muted-foreground">
+            Monitor key metrics and platform performance
+          </p>
+        </div>
+        <Button
+          onClick={handleGenerateReport}
+          className="flex items-center gap-2 bg-linear-to-r from-amber-600 to-yellow-500 hover:from-amber-700 hover:to-yellow-600 text-white shadow-md"
+        >
+          <FileText className="h-4 w-4" />
+          Generate PDF Report
+          <Download className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Key Metrics */}

@@ -60,7 +60,7 @@ export function ConsentDialog({ onConsent }: ConsentDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={() => { }}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-center mb-2">
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -76,11 +76,11 @@ export function ConsentDialog({ onConsent }: ConsentDialogProps) {
         <div className="space-y-4 py-4">
           {/* Why we collect data */}
           <Card className="p-4 bg-primary/5 border-primary/20">
-            <h4 className="mb-3 flex items-center gap-2">
+            <h4 className="gap-2 flex items-center">
               <Award className="h-5 w-5 text-primary" />
               How We Help You Succeed
             </h4>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground py-0 mt-0">
               By tracking your SDG activities, we help you monitor your impact, discover relevant opportunities,
               and celebrate your contributions to the UN Sustainable Development Goals.
             </p>

@@ -141,25 +141,25 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
             My Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm md:text-base">
             Welcome back, {currentUser.name.split(" ")[0]}! 👋
           </p>
         </div>
-        <Card className="p-4 hover:shadow-lg transition-all bg-linear-to-br from-amber-500/10 via-amber-500/5 to-background border-amber-500/20 border-2">
+        <Card className="p-3 md:p-4 hover:shadow-lg transition-all bg-linear-to-br from-amber-500/10 via-amber-500/5 to-background border-amber-500/20 border-2">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs text-muted-foreground font-medium mb-1">
                 Total Points
               </p>
-              <p className="text-3xl font-black bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+              <p className="text-2xl md:text-3xl font-black bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
                 {currentUser.totalPoints.toLocaleString()}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-              <Trophy className="h-6 w-6 text-amber-600" />
+            <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+              <Trophy className="h-5 w-5 md:h-6 md:w-6 text-amber-600" />
             </div>
           </div>
         </Card>
@@ -222,7 +222,7 @@ export function Dashboard() {
         </Card>
       </div>
       {/* Badges Section */}
-      <Card className="p-5 shadow-md">
+      <Card className="p-4 md:p-5 shadow-md">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
@@ -238,7 +238,7 @@ export function Dashboard() {
           </Badge>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
           {/* Earned Badges */}
           {earnedBadges.map((badge) => (
             <Card
@@ -324,7 +324,7 @@ export function Dashboard() {
       </Card>
 
       {/* My Friends Section */}
-      <Card className="p-5 shadow-md">
+      <Card className="p-4 md:p-5 shadow-md">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
@@ -390,7 +390,7 @@ export function Dashboard() {
       </Card>
 
       {/* Recent Activities */}
-      <Card className="p-5 shadow-md">
+      <Card className="p-4 md:p-5 shadow-md">
         <div className="flex items-center gap-3 mb-4">
           <div className="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
             <Calendar className="h-4 w-4 text-green-600" />
@@ -445,7 +445,7 @@ export function Dashboard() {
       </Card>
 
       {/* SDG Goals Progress */}
-      <Card className="p-5 shadow-md">
+      <Card className="p-4 md:p-5 shadow-md">
         <div className="flex items-center gap-3 mb-4">
           <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
             <Award className="h-4 w-4 text-purple-600" />

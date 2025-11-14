@@ -1,5 +1,5 @@
 import { allStudents, availableActivities, currentUser } from "@/data/mockData";
-import { Student, AvailableActivity, SDG_GOALS } from "@/types";
+import { AvailableActivity, SDG_GOALS, EventFeedback } from "@/types";
 
 // Get activities from localStorage if available, otherwise use default
 function getAvailableActivities(): AvailableActivity[] {
@@ -8,7 +8,7 @@ function getAvailableActivities(): AvailableActivity[] {
     if (stored) {
       try {
         return JSON.parse(stored);
-      } catch (e) {
+      } catch {
         return availableActivities;
       }
     }
@@ -125,15 +125,17 @@ function getAllStudentActivities(): Array<{
 }
 
 // Get all registered events (including favorites)
-function getAllRegisteredEvents(): Array<{
+export function getAllRegisteredEvents(): Array<{
   studentId: string;
   eventId: string;
   activityId: string;
   title: string;
+  organizer: string;
+  sdgGoals: number[];
   status: "registered" | "attended" | "cancelled";
   registeredDate: string;
   attendedDate?: string;
-  feedback?: any;
+  feedback?: EventFeedback;
   faculty: string;
 }> {
   const events: Array<{
@@ -141,10 +143,12 @@ function getAllRegisteredEvents(): Array<{
     eventId: string;
     activityId: string;
     title: string;
+    organizer: string;
+    sdgGoals: number[];
     status: "registered" | "attended" | "cancelled";
     registeredDate: string;
     attendedDate?: string;
-    feedback?: any;
+    feedback?: EventFeedback;
     faculty: string;
   }> = [];
 
@@ -156,6 +160,8 @@ function getAllRegisteredEvents(): Array<{
         eventId: event.id,
         activityId: event.activityId,
         title: event.title,
+        organizer: event.organizer,
+        sdgGoals: event.sdgGoals,
         status: event.status,
         registeredDate: event.registeredDate,
         attendedDate: event.attendedDate,
@@ -172,6 +178,8 @@ function getAllRegisteredEvents(): Array<{
       studentId: "user-2",
       activityId: "avail-2",
       title: "Water Conservation Workshop",
+      organizer: "Environmental Society",
+      sdgGoals: [6, 14, 15],
       status: "registered" as const,
       registeredDate: "2024-10-18",
       faculty: "Faculty of Engineering",
@@ -180,6 +188,8 @@ function getAllRegisteredEvents(): Array<{
       studentId: "user-3",
       activityId: "avail-4",
       title: "Global Health & Wellbeing Seminar",
+      organizer: "Health & Wellness Society",
+      sdgGoals: [3, 10],
       status: "attended" as const,
       registeredDate: "2024-10-15",
       attendedDate: "2024-11-12",
@@ -189,6 +199,8 @@ function getAllRegisteredEvents(): Array<{
       studentId: "user-4",
       activityId: "avail-6",
       title: "Gender Equality in STEM Panel",
+      organizer: "Women in STEM Society",
+      sdgGoals: [5, 10],
       status: "registered" as const,
       registeredDate: "2024-10-20",
       faculty: "Faculty of Arts, Design & Architecture",
@@ -201,6 +213,8 @@ function getAllRegisteredEvents(): Array<{
       eventId: `event-${event.studentId}-${event.activityId}`,
       activityId: event.activityId,
       title: event.title,
+      organizer: event.organizer,
+      sdgGoals: event.sdgGoals,
       status: event.status,
       registeredDate: event.registeredDate,
       attendedDate: event.attendedDate,
@@ -339,6 +353,22 @@ export function getEventAnalytics() {
   const eventRatings: Map<string, number[]> = new Map();
 
   events.forEach((event) => {
+    // If event doesn't exist in stats yet, add it (for past events not in availableActivities)
+    if (!eventStats.has(event.activityId)) {
+      eventStats.set(event.activityId, {
+        id: event.activityId,
+        title: event.title,
+        registered: 0,
+        attended: 0,
+        cancelled: 0,
+        attendanceRate: 0,
+        averageRating: 0,
+        favoriteCount: favorites.get(event.activityId)?.size || 0,
+        organizer: event.organizer,
+        sdgGoals: event.sdgGoals,
+      });
+    }
+
     const stat = eventStats.get(event.activityId);
     if (stat) {
       if (event.status === "registered") stat.registered++;
@@ -495,5 +525,89 @@ export function getDashboardOverview() {
     averageEngagement: Math.round(averageEngagement * 10) / 10,
     mostActiveFaculty,
     topSDGs,
+  };
+}
+
+export function getActivityTypeAnalytics() {
+  const activities = getAllStudentActivities();
+
+  const typeStats: {
+    coursework: {
+      count: number;
+      totalPoints: number;
+      avgPoints: number;
+      participants: Set<string>;
+    };
+    society: {
+      count: number;
+      totalPoints: number;
+      avgPoints: number;
+      participants: Set<string>;
+    };
+    event: {
+      count: number;
+      totalPoints: number;
+      avgPoints: number;
+      participants: Set<string>;
+    };
+  } = {
+    coursework: {
+      count: 0,
+      totalPoints: 0,
+      avgPoints: 0,
+      participants: new Set<string>(),
+    },
+    society: {
+      count: 0,
+      totalPoints: 0,
+      avgPoints: 0,
+      participants: new Set<string>(),
+    },
+    event: {
+      count: 0,
+      totalPoints: 0,
+      avgPoints: 0,
+      participants: new Set<string>(),
+    },
+  };
+
+  activities.forEach((activity) => {
+    const type = activity.category;
+    if (type in typeStats) {
+      typeStats[type].count++;
+      typeStats[type].totalPoints += activity.points;
+      typeStats[type].participants.add(activity.studentId);
+    }
+  });
+
+  // Calculate averages and convert Set to count
+  return {
+    coursework: {
+      count: typeStats.coursework.count,
+      totalPoints: typeStats.coursework.totalPoints,
+      avgPoints:
+        typeStats.coursework.count > 0
+          ? typeStats.coursework.totalPoints / typeStats.coursework.count
+          : 0,
+      participants: typeStats.coursework.participants.size,
+    },
+    society: {
+      count: typeStats.society.count,
+      totalPoints: typeStats.society.totalPoints,
+      avgPoints:
+        typeStats.society.count > 0
+          ? typeStats.society.totalPoints / typeStats.society.count
+          : 0,
+      participants: typeStats.society.participants.size,
+    },
+    event: {
+      count: typeStats.event.count,
+      totalPoints: typeStats.event.totalPoints,
+      avgPoints:
+        typeStats.event.count > 0
+          ? typeStats.event.totalPoints / typeStats.event.count
+          : 0,
+      participants: typeStats.event.participants.size,
+    },
   };
 }
