@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { UserPlus, GraduationCap } from 'lucide-react';
+import { UserPlus, GraduationCap, Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react';
 
 interface SignupDialogProps {
   open: boolean;
@@ -23,6 +23,7 @@ export interface UserSignupData {
   studentId: string;
   faculty: string;
   email?: string;
+  password: string;
 }
 
 const FACULTIES = [
@@ -41,7 +42,17 @@ export function SignupDialog({ open, onSignup }: SignupDialogProps) {
   const [studentId, setStudentId] = useState('');
   const [faculty, setFaculty] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [passwordValidation, setPasswordValidation] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+  });
 
   const validateStudentId = (id: string): boolean => {
     // Format: Z followed by 7 digits (e.g., Z1234567)
@@ -53,6 +64,17 @@ export function SignupDialog({ open, onSignup }: SignupDialogProps) {
     if (!email) return true; // Email is optional
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  const validatePassword = (pwd: string) => {
+    const validation = {
+      length: pwd.length >= 8,
+      uppercase: /[A-Z]/.test(pwd),
+      lowercase: /[a-z]/.test(pwd),
+      number: /[0-9]/.test(pwd),
+    };
+    setPasswordValidation(validation);
+    return Object.values(validation).every(v => v);
   };
 
   const handleSubmit = () => {
@@ -76,6 +98,18 @@ export function SignupDialog({ open, onSignup }: SignupDialogProps) {
       newErrors.email = 'Please enter a valid email address';
     }
 
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (!validatePassword(password)) {
+      newErrors.password = 'Password does not meet requirements';
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -87,6 +121,7 @@ export function SignupDialog({ open, onSignup }: SignupDialogProps) {
       studentId: studentId.trim(),
       faculty,
       email: email.trim() || undefined,
+      password: password,
     });
   };
 
@@ -200,6 +235,137 @@ export function SignupDialog({ open, onSignup }: SignupDialogProps) {
             <p className="text-xs text-muted-foreground">
               Your UNSW student email address
             </p>
+          </div>
+
+          {/* Password */}
+          <div className="space-y-2">
+            <Label htmlFor="signup-password">
+              Password <span className="text-destructive">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="signup-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Create a strong password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  validatePassword(e.target.value);
+                  if (errors.password) setErrors({ ...errors, password: '' });
+                }}
+                aria-invalid={!!errors.password}
+                className={errors.password ? 'border-destructive' : ''}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-sm text-destructive">{errors.password}</p>
+            )}
+
+            {/* Password Requirements */}
+            {password && (
+              <div className="space-y-1.5 mt-2 p-3 bg-muted/50 rounded-md border">
+                <p className="text-xs font-semibold text-foreground mb-2">Password requirements:</p>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-xs">
+                    {passwordValidation.length ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    <span className={passwordValidation.length ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}>
+                      At least 8 characters
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    {passwordValidation.uppercase ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    <span className={passwordValidation.uppercase ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}>
+                      One uppercase letter
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    {passwordValidation.lowercase ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    <span className={passwordValidation.lowercase ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}>
+                      One lowercase letter
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    {passwordValidation.number ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    <span className={passwordValidation.number ? 'text-green-700 dark:text-green-400' : 'text-muted-foreground'}>
+                      One number
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="space-y-2">
+            <Label htmlFor="signup-confirm-password">
+              Confirm Password <span className="text-destructive">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="signup-confirm-password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
+                }}
+                aria-invalid={!!errors.confirmPassword}
+                className={errors.confirmPassword ? 'border-destructive' : confirmPassword && password === confirmPassword ? 'border-green-500' : ''}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-sm text-destructive flex items-center gap-1.5">
+                <XCircle className="h-3.5 w-3.5" />
+                {errors.confirmPassword}
+              </p>
+            )}
+            {confirmPassword && password === confirmPassword && !errors.confirmPassword && (
+              <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Passwords match
+              </p>
+            )}
           </div>
         </div>
 

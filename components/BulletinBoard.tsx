@@ -824,13 +824,13 @@ export function BulletinBoard() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
             <Button
               onClick={confirmRegistration}
-              className="bg-linear-to-r from-[#FFE600] to-[#ffd700] hover:from-[#ffd700] hover:to-[#FFE600] text-[#231F20] font-semibold"
+              className="bg-[#FFE600] hover:bg-[#ffd700] text-[#231F20] font-semibold"
             >
               Confirm Registration
             </Button>
