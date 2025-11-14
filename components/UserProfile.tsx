@@ -11,9 +11,11 @@ interface UserProfileProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isCurrentUser?: boolean;
+  isAnonymous?: boolean;
+  anonymousName?: string;
 }
 
-export function UserProfile({ user, open, onOpenChange, isCurrentUser = false }: UserProfileProps) {
+export function UserProfile({ user, open, onOpenChange, isCurrentUser = false, isAnonymous = false, anonymousName }: UserProfileProps) {
   if (!user) return null;
 
   // When viewing own profile, use currentUser.badges to ensure sync with MyRewards
@@ -24,27 +26,34 @@ export function UserProfile({ user, open, onOpenChange, isCurrentUser = false }:
   const visibleBadges = earnedBadges.slice(0, 5);
   const remainingCount = earnedBadges.length - 5;
 
+  // Determine display name and avatar
+  const displayName = isAnonymous && anonymousName ? anonymousName : user.name;
+  const displayAvatar = isAnonymous ? undefined : user.avatar;
+  const displayInitials = isAnonymous && anonymousName 
+    ? anonymousName.split(' ').map(n => n[0]).join('')
+    : user.name.split(' ').map(n => n[0]).join('');
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="sr-only">
-          <DialogTitle>{user.name}&apos;s Profile</DialogTitle>
+          <DialogTitle>{displayName}&apos;s Profile</DialogTitle>
           <DialogDescription>
-            View {isCurrentUser ? 'your' : user.name + "'s"} profile including badges and achievements
+            View {isCurrentUser ? 'your' : displayName + "'s"} profile including badges and achievements
           </DialogDescription>
         </DialogHeader>
 
         {/* Profile Header */}
         <div className="flex flex-col items-center text-center space-y-4 pb-6">
           <Avatar className="h-24 w-24">
-            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarImage src={displayAvatar} alt={displayName} />
             <AvatarFallback className="text-2xl">
-              {user.name.split(' ').map(n => n[0]).join('')}
+              {displayInitials}
             </AvatarFallback>
           </Avatar>
 
           <div className="space-y-3">
-            <h2 className="text-2xl">{user.name}</h2>
+            <h2 className="text-2xl">{displayName}</h2>
             <p className="text-muted-foreground">{user.faculty}</p>
 
             <div className="flex items-center justify-center gap-4 pt-2">

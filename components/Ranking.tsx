@@ -9,6 +9,7 @@ import { UserProfile } from './UserProfile';
 import { allStudents, currentUser } from '@/data/mockData';
 import { Student } from '@/types';
 import { Trophy, Medal, Award, Building2, GraduationCap, Users, Search, UserPlus, UserCheck } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { toast } from 'sonner';
 
 type ScopeFilter = 'global' | 'faculty' | 'friends';
@@ -74,17 +75,33 @@ export function Ranking() {
     return `${adjectives[adjIndex]} ${animals[animalIndex]}`;
   };
 
-  // Helper function to get display name (anonymous if enabled and is current user)
+  // Helper function to determine if a user should be anonymous
+  const shouldBeAnonymous = (student: Student): boolean => {
+    // Current user is anonymous if setting is enabled
+    if (student.id === currentUser.id) {
+      return anonymousOnLeaderboard;
+    }
+    // Make ~50% of other users anonymous (deterministic based on ID)
+    let hash = 0;
+    for (let i = 0; i < student.id.length; i++) {
+      const char = student.id.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash) % 2 === 0;
+  };
+
+  // Helper function to get display name (anonymous if enabled)
   const getDisplayName = (student: Student) => {
-    if (student.id === currentUser.id && anonymousOnLeaderboard) {
+    if (shouldBeAnonymous(student)) {
       return generateAnonymousName(student.id);
     }
     return student.name;
   };
 
-  // Helper function to get display avatar (anonymous if enabled and is current user)
+  // Helper function to get display avatar (anonymous if enabled)
   const getDisplayAvatar = (student: Student) => {
-    if (student.id === currentUser.id && anonymousOnLeaderboard) {
+    if (shouldBeAnonymous(student)) {
       return undefined; // Return undefined to use fallback
     }
     return student.avatar;
@@ -92,7 +109,7 @@ export function Ranking() {
 
   // Helper function to get avatar fallback initials
   const getAvatarFallback = (student: Student) => {
-    if (student.id === currentUser.id && anonymousOnLeaderboard) {
+    if (shouldBeAnonymous(student)) {
       const anonymousName = generateAnonymousName(student.id);
       return anonymousName.split(' ').map(n => n[0]).join(''); // e.g., "FG" for "Fun Giraffe"
     }
@@ -362,7 +379,51 @@ export function Ranking() {
                       <h3 className="font-bold text-lg hover:text-primary transition-colors line-clamp-1">
                         {getDisplayName(student)}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-1">{student.faculty}</p>
+                      <div className="flex flex-col items-center gap-1">
+                        <p className="text-sm text-muted-foreground line-clamp-1">{student.faculty}</p>
+                        {/* Badges */}
+                        {student.badges && student.badges.filter((b) => b.earned).length > 0 && (
+                          <div className="flex items-center gap-1 flex-wrap justify-center">
+                            {student.badges
+                              .filter((b) => b.earned)
+                              .slice(0, 3)
+                              .map((badge) => (
+                                <TooltipProvider key={badge.id}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div
+                                        className="w-6 h-6 rounded-full flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition-transform"
+                                        style={{ backgroundColor: badge.color + '20' }}
+                                      >
+                                        {badge.icon}
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="text-xs">{badge.name}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              ))}
+                            {student.badges.filter((b) => b.earned).length > 3 && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
+                                      +{student.badges.filter((b) => b.earned).length - 3}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">
+                                      {student.badges.filter((b) => b.earned).length - 3} more badge
+                                      {student.badges.filter((b) => b.earned).length - 3 !== 1 ? 's' : ''}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
@@ -447,15 +508,59 @@ export function Ranking() {
                           🎯 You
                         </Badge>
                       )}
-                      {followedUsers.includes(student.id) && !isCurrentUser && (
+                      {followedUsers.includes(student.id) && !isCurrentUser && !shouldBeAnonymous(student) && (
                         <Badge variant="secondary" className="text-xs">
                           ⭐ Following
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {student.faculty}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap mt-1">
+                      <p className="text-sm text-muted-foreground truncate">
+                        {student.faculty}
+                      </p>
+                      {/* Badges */}
+                      {student.badges && student.badges.filter((b) => b.earned).length > 0 && (
+                        <div className="flex items-center gap-1">
+                          {student.badges
+                            .filter((b) => b.earned)
+                            .slice(0, 3)
+                            .map((badge) => (
+                              <TooltipProvider key={badge.id}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div
+                                      className="w-5 h-5 rounded-full flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition-transform"
+                                      style={{ backgroundColor: badge.color + '20' }}
+                                    >
+                                      {badge.icon}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">{badge.name}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ))}
+                          {student.badges.filter((b) => b.earned).length > 3 && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
+                                    +{student.badges.filter((b) => b.earned).length - 3}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs">
+                                    {student.badges.filter((b) => b.earned).length - 3} more badge
+                                    {student.badges.filter((b) => b.earned).length - 3 !== 1 ? 's' : ''}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -470,8 +575,8 @@ export function Ranking() {
                   </p>
                 </div>
 
-                {/* Follow Button */}
-                {!isCurrentUser && (
+                {/* Follow Button - Only show for non-anonymous, non-current users */}
+                {!isCurrentUser && !shouldBeAnonymous(student) && (
                   <div className="shrink-0 w-full sm:w-auto">
                     <Button
                       variant={followedUsers.includes(student.id) ? 'outline' : 'default'}
@@ -511,12 +616,16 @@ export function Ranking() {
 
 
       {/* User Profile Dialog */}
-      <UserProfile
-        user={selectedUser}
-        open={profileOpen}
-        onOpenChange={setProfileOpen}
-        isCurrentUser={selectedUser?.id === currentUser.id}
-      />
+      {selectedUser && (
+        <UserProfile
+          user={selectedUser}
+          open={profileOpen}
+          onOpenChange={setProfileOpen}
+          isCurrentUser={selectedUser.id === currentUser.id}
+          isAnonymous={shouldBeAnonymous(selectedUser)}
+          anonymousName={shouldBeAnonymous(selectedUser) ? generateAnonymousName(selectedUser.id) : undefined}
+        />
+      )}
     </div>
   );
 }
