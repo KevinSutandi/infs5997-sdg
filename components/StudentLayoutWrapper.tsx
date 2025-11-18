@@ -223,8 +223,8 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
         {/* Mobile Sidebar Sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetContent side="left" className="w-64 p-0" aria-label="Mobile navigation">
-            <StudentSidebar 
-              onLinkClick={() => setMobileMenuOpen(false)} 
+            <StudentSidebar
+              onLinkClick={() => setMobileMenuOpen(false)}
               onSignUpClick={() => {
                 setMobileMenuOpen(false);
                 setShowSignupDialog(true);
@@ -239,9 +239,9 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
           <div className="md:hidden sticky top-0 z-40 bg-background border-b p-4">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-10 w-10"
                   aria-label="Open navigation menu"
                   aria-expanded={mobileMenuOpen}

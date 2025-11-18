@@ -114,8 +114,8 @@ export function ShareDialog({
       )}
       {!trigger && !controlledOpen && (
         <DialogTrigger asChild>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size={iconOnly ? "icon" : "sm"}
             aria-label={iconOnly ? `Share ${type === 'badge' ? 'badge' : 'activity'}` : undefined}
           >
