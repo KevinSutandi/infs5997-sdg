@@ -274,8 +274,13 @@ export function MyEvents() {
                                             <Tooltip>
                                               <TooltipTrigger asChild>
                                                 <div
-                                                  className="h-5 w-5 rounded flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm hover:scale-110 transition-transform cursor-help"
-                                                  style={{ backgroundColor: goal?.color }}
+                                                  className={`h-5 w-5 rounded flex items-center justify-center text-xs font-bold shrink-0 shadow-md hover:scale-110 transition-transform cursor-help ${
+                                                    goal?.textColor === 'black' ? 'text-black' : 'text-white'
+                                                  }`}
+                                                  style={{ 
+                                                    backgroundColor: goal?.color,
+                                                    textShadow: goal?.textColor === 'white' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(255,255,255,0.5)'
+                                                  }}
                                                 >
                                                   {sdgNumber}
                                                 </div>
@@ -285,7 +290,7 @@ export function MyEvents() {
                                                 style={{ backgroundColor: goal?.color }}
                                                 arrowStyle={{ backgroundColor: goal?.color, fill: goal?.color }}
                                               >
-                                                <p className="text-xs font-medium text-white">SDG {sdgNumber}: {goal?.name}</p>
+                                                <p className={`text-xs font-medium ${goal?.textColor === 'black' ? 'text-black' : 'text-white'}`}>SDG {sdgNumber}: {goal?.name}</p>
                                               </TooltipContent>
                                             </Tooltip>
                                           </TooltipProvider>

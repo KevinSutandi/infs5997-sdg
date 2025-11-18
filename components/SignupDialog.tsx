@@ -285,7 +285,7 @@ export function SignupDialog({ open, onSignup, onOpenChange }: SignupDialogProps
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-xs">
                     {passwordValidation.length ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-700 dark:text-green-500" />
                     ) : (
                       <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
                     )}
@@ -295,7 +295,7 @@ export function SignupDialog({ open, onSignup, onOpenChange }: SignupDialogProps
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     {passwordValidation.uppercase ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-700 dark:text-green-500" />
                     ) : (
                       <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
                     )}
@@ -305,7 +305,7 @@ export function SignupDialog({ open, onSignup, onOpenChange }: SignupDialogProps
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     {passwordValidation.lowercase ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-700 dark:text-green-500" />
                     ) : (
                       <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
                     )}
@@ -315,7 +315,7 @@ export function SignupDialog({ open, onSignup, onOpenChange }: SignupDialogProps
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     {passwordValidation.number ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-700 dark:text-green-500" />
                     ) : (
                       <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
                     )}
@@ -366,7 +366,7 @@ export function SignupDialog({ open, onSignup, onOpenChange }: SignupDialogProps
               </p>
             )}
             {confirmPassword && password === confirmPassword && !errors.confirmPassword && (
-              <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
+              <p className="text-sm text-green-700 dark:text-green-500 flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Passwords match
               </p>

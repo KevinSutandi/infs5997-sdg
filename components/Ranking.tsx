@@ -164,12 +164,12 @@ export function Ranking() {
     if (scopeFilter === 'faculty') {
       // In guest mode, show all students (can't filter by faculty without user data)
       if (!isGuest) {
-        filtered = filtered.filter(s => s.faculty === currentUser.faculty);
+      filtered = filtered.filter(s => s.faculty === currentUser.faculty);
       }
     } else if (scopeFilter === 'friends') {
       // Friends filter only works when signed in
       if (!isGuest) {
-        filtered = filtered.filter(s => followedUsers.includes(s.id) || s.id === currentUser.id);
+      filtered = filtered.filter(s => followedUsers.includes(s.id) || s.id === currentUser.id);
       }
     }
 
@@ -287,14 +287,14 @@ export function Ranking() {
                     Faculty
               </Button>
               {!isGuest && (
-                <Button
-                  variant={scopeFilter === 'friends' ? 'default' : 'outline'}
-                  onClick={() => setScopeFilter('friends')}
-                  className="flex items-center gap-2"
-                >
-                  <Users className="h-4 w-4" />
-                  Friends
-                </Button>
+              <Button
+                variant={scopeFilter === 'friends' ? 'default' : 'outline'}
+                onClick={() => setScopeFilter('friends')}
+                className="flex items-center gap-2"
+              >
+                <Users className="h-4 w-4" />
+                Friends
+              </Button>
               )}
             </div>
           </div>
@@ -608,11 +608,18 @@ export function Ranking() {
                         handleFollow(student.id);
                       }}
                       className="transition-all hover:scale-105"
+                      aria-label={followedUsers.includes(student.id) ? `Unfollow ${student.name}` : `Follow ${student.name}`}
                   >
                     {followedUsers.includes(student.id) ? (
-                      <UserCheck className="h-4 w-4" />
+                      <>
+                        <UserCheck className="h-4 w-4" aria-hidden="true" />
+                        <span className="sr-only">Following</span>
+                      </>
                     ) : (
-                      <UserPlus className="h-4 w-4" />
+                      <>
+                        <UserPlus className="h-4 w-4" aria-hidden="true" />
+                        <span className="sr-only">Follow</span>
+                      </>
                     )}
                   </Button>
                 </div>

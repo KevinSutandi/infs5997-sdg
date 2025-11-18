@@ -311,7 +311,7 @@ export function EventFeedbackDialog({
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="yes" id="recommend-yes" />
                   <Label htmlFor="recommend-yes" className="flex items-center gap-2 cursor-pointer">
-                    <ThumbsUp className="h-4 w-4 text-green-600" />
+                    <ThumbsUp className="h-4 w-4 text-green-700 dark:text-green-500" />
                     Yes, I would recommend it
                   </Label>
                 </div>

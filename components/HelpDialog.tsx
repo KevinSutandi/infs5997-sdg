@@ -23,7 +23,7 @@ export function HelpDialog() {
           className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50 hover:scale-110 transition-transform"
           aria-label="Help"
         >
-          <HelpCircle className="h-6 w-6" />
+          <HelpCircle className="h-6 w-6" aria-hidden="true" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

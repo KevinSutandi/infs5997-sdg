@@ -38,7 +38,7 @@ export function PointsDetailsDialog({
       case 'event':
         return {
           title: 'Event Activities',
-          color: 'text-green-600',
+          color: 'text-green-700 dark:text-green-500',
           bgColor: 'bg-green-500/10'
         };
     }

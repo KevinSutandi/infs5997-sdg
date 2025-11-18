@@ -138,7 +138,7 @@ export function EventAnalytics() {
 
         <Card className="p-5">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="h-5 w-5 text-green-600" />
+            <TrendingUp className="h-5 w-5 text-green-700 dark:text-green-500" />
           </div>
           <p className="text-2xl font-bold">{totalAttended}</p>
           <p className="text-sm text-muted-foreground">Total Attended</p>
@@ -339,7 +339,7 @@ export function EventAnalytics() {
             {/* High Performers */}
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Award className="h-5 w-5 text-green-600" />
+                <Award className="h-5 w-5 text-green-700 dark:text-green-500" />
                 <div>
                   <h3 className="text-lg font-semibold">High Performers</h3>
                   <p className="text-sm text-muted-foreground">≥80% attendance rate</p>
@@ -367,7 +367,7 @@ export function EventAnalytics() {
             {/* Needs Improvement */}
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-4">
-                <AlertCircle className="h-5 w-5 text-orange-600" />
+                <AlertCircle className="h-5 w-5 text-orange-700 dark:text-orange-500" />
                 <div>
                   <h3 className="text-lg font-semibold">Needs Improvement</h3>
                   <p className="text-sm text-muted-foreground">&lt;60% attendance rate</p>
@@ -439,7 +439,7 @@ export function EventAnalytics() {
 
             <Card className="p-5">
               <div className="flex items-center justify-between mb-2">
-                <ThumbsUp className="h-5 w-5 text-green-600" />
+                <ThumbsUp className="h-5 w-5 text-green-700 dark:text-green-500" />
               </div>
               <p className="text-2xl font-bold">
                 {allFeedback.filter((f) => f.overallRating >= 4).length}
@@ -453,7 +453,7 @@ export function EventAnalytics() {
 
             <Card className="p-5">
               <div className="flex items-center justify-between mb-2">
-                <ThumbsDown className="h-5 w-5 text-orange-600" />
+                <ThumbsDown className="h-5 w-5 text-orange-700 dark:text-orange-500" />
               </div>
               <p className="text-2xl font-bold">
                 {allFeedback.filter((f) => f.overallRating < 4).length}

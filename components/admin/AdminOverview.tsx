@@ -106,7 +106,7 @@ export function AdminOverview() {
             <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
-            <div className={`flex items-center gap-1 text-xs font-medium ${trends.students > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-xs font-medium ${trends.students > 0 ? 'text-green-700 dark:text-green-500' : 'text-red-600'}`}>
               {trends.students > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
               {Math.abs(trends.students)}%
             </div>
@@ -120,7 +120,7 @@ export function AdminOverview() {
             <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
               <Calendar className="h-5 w-5 text-purple-600" />
             </div>
-            <div className={`flex items-center gap-1 text-xs font-medium ${trends.activities > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-xs font-medium ${trends.activities > 0 ? 'text-green-700 dark:text-green-500' : 'text-red-600'}`}>
               {trends.activities > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
               {Math.abs(trends.activities)}%
             </div>
@@ -134,7 +134,7 @@ export function AdminOverview() {
             <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
               <Award className="h-5 w-5 text-amber-600" />
             </div>
-            <div className={`flex items-center gap-1 text-xs font-medium ${trends.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-xs font-medium ${trends.points > 0 ? 'text-green-700 dark:text-green-500' : 'text-red-600'}`}>
               {trends.points > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
               {Math.abs(trends.points)}%
             </div>
@@ -146,9 +146,9 @@ export function AdminOverview() {
         <Card className="p-5 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-3">
             <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-              <Activity className="h-5 w-5 text-green-600" />
+              <Activity className="h-5 w-5 text-green-700 dark:text-green-500" />
             </div>
-            <div className={`flex items-center gap-1 text-xs font-medium ${trends.engagement > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-xs font-medium ${trends.engagement > 0 ? 'text-green-700 dark:text-green-500' : 'text-red-600'}`}>
               {trends.engagement > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
               {Math.abs(trends.engagement)}%
             </div>

@@ -165,7 +165,7 @@ export function BulletinBoard() {
 
   // Check if user is signed in (respects demo mode toggle)
   const DEMO_MODE_STORAGE_KEY = 'sdg-demo-mode-signed-in';
-  const demoSignedIn = typeof window !== 'undefined' 
+  const demoSignedIn = typeof window !== 'undefined'
     ? (localStorage.getItem(DEMO_MODE_STORAGE_KEY) ?? 'true') === 'true' // Default to signed in
     : true;
   const isGuest = !demoSignedIn; // Demo toggle controls guest state
@@ -251,7 +251,7 @@ export function BulletinBoard() {
     activity: AvailableActivity,
   ) => {
     if (!activity.capacity)
-      return { text: "Open", color: "text-green-600" };
+      return { text: "Open", color: "text-green-700 dark:text-green-500" };
     const spotsLeft =
       activity.capacity - (activity.enrolled || 0);
     if (spotsLeft <= 0)
@@ -259,9 +259,9 @@ export function BulletinBoard() {
     if (spotsLeft <= 5)
       return {
         text: `${spotsLeft} spots left`,
-        color: "text-orange-600",
+        color: "text-orange-700 dark:text-orange-500",
       };
-    return { text: "Available", color: "text-green-600" };
+    return { text: "Available", color: "text-green-700 dark:text-green-500" };
   };
 
   const toggleSDG = (sdgNumber: number) => {
@@ -311,7 +311,7 @@ export function BulletinBoard() {
                 className="pl-10"
               />
             </div>
-            
+
             {/* Activity Type Filter */}
             <div className="flex flex-wrap gap-2 shrink-0">
               <Button
@@ -412,8 +412,12 @@ export function BulletinBoard() {
                     >
                       <span className="flex items-center gap-2">
                         <span
-                          className="inline-flex h-5 w-5 items-center justify-center rounded text-xs font-medium text-white shrink-0"
-                          style={{ backgroundColor: sdg.color }}
+                          className={`inline-flex h-5 w-5 items-center justify-center rounded text-xs font-medium shrink-0 shadow-md ${sdg.textColor === 'black' ? 'text-black' : 'text-white'
+                            }`}
+                          style={{
+                            backgroundColor: sdg.color,
+                            textShadow: sdg.textColor === 'white' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(255,255,255,0.5)'
+                          }}
                         >
                           {sdg.number}
                         </span>
@@ -466,6 +470,7 @@ export function BulletinBoard() {
                       <button
                         onClick={() => toggleSDG(sdgNum)}
                         className="ml-1 hover:bg-accent rounded-full p-0.5"
+                        aria-label={`Toggle filter for SDG ${sdgNum}`}
                       >
                         ×
                       </button>
@@ -491,7 +496,7 @@ export function BulletinBoard() {
 
       {/* Activities by Category Sections */}
       <div className="space-y-8">
-        {(categoryFilter === "all" 
+        {(categoryFilter === "all"
           ? (['coursework', 'society', 'event'] as const)
           : [categoryFilter] as const
         ).map((category) => {
@@ -560,14 +565,35 @@ export function BulletinBoard() {
                                 }`}
                             />
                           </button>
-                          {/* Points badge on image */}
-                          <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                        </div>
+                      )}
+
+                      {/* Content */}
+                      <div className="p-4 space-y-3">
+                        {/* Title and Description */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-base line-clamp-2 mb-1">
+                              {activity.title}
+                            </h3>
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {activity.description}
+                          </p>
+                          <div className="flex items-center justify-start gap-2">
+                            <Badge className="bg-[#FFE600] hover:bg-[#ffd700] text-[#231F20] shadow-lg">
+                              <Award className="w-3 h-3 mr-1" aria-hidden="true" />
+                              {activity.pointsBreakdown?.total ?? activity.points} pts
+                            </Badge>
                             {activity.pointsBreakdown && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <button className="p-1.5 bg-background/90 backdrop-blur-sm rounded-full hover:bg-background transition-colors shadow-md">
-                                      <Info className="h-3.5 w-3.5 text-amber-600" />
+                                    <button
+                                      className="p-1 bg-background/90 backdrop-blur-sm rounded-full hover:bg-background transition-colors shadow-md"
+                                      aria-label={`View points breakdown for ${activity.title}`}
+                                    >
+                                      <Info className="h-3.5 w-3.5 text-[#231F20]" aria-hidden="true" />
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent side="left" className="max-w-xs bg-white shadow-lg text-black"
@@ -576,16 +602,12 @@ export function BulletinBoard() {
                                       <p className="font-semibold">Points Breakdown:</p>
                                       <div className="space-y-1">
                                         <div className="flex justify-between">
-                                          <span>Time ({activity.pointsBreakdown.timeCommitment / 10}h):</span>
+                                          <span>Time ({Math.round((activity.pointsBreakdown.timeCommitment / 15) * 10) / 10}h):</span>
                                           <span className="font-semibold">{activity.pointsBreakdown.timeCommitment} pts</span>
                                         </div>
                                         <div className="flex justify-between">
-                                          <span>Difficulty (Level {activity.pointsBreakdown.difficulty / 20}):</span>
+                                          <span>Difficulty (Level {activity.pointsBreakdown.difficulty / 5}):</span>
                                           <span className="font-semibold">{activity.pointsBreakdown.difficulty} pts</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span>SDG Impact ({activity.sdgGoals.length} goals):</span>
-                                          <span className="font-semibold">{activity.pointsBreakdown.sdgImpact} pts</span>
                                         </div>
                                         <div className="border-t pt-1 flex justify-between font-bold">
                                           <span>Total:</span>
@@ -602,24 +624,8 @@ export function BulletinBoard() {
                                 </Tooltip>
                               </TooltipProvider>
                             )}
-                            <Badge className="bg-amber-600 hover:bg-amber-700 shadow-lg">
-                              <Award className="w-3 h-3 mr-1" />
-                              {activity.pointsBreakdown?.total ?? activity.points} pts
-                            </Badge>
-                          </div>
-                        </div>
-                      )}
 
-                      {/* Content */}
-                      <div className="p-4 space-y-3">
-                        {/* Title and Description */}
-                        <div>
-                          <h3 className="font-bold text-base line-clamp-2 mb-1">
-                            {activity.title}
-                          </h3>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {activity.description}
-                          </p>
+                          </div>
                         </div>
 
                         {/* SDG Goals - Compact */}
@@ -631,8 +637,12 @@ export function BulletinBoard() {
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <div
-                                      className="h-6 w-6 rounded flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm hover:scale-110 transition-transform cursor-help"
-                                      style={{ backgroundColor: goal?.color }}
+                                      className={`h-8 w-8 rounded flex items-center justify-center text-sm font-bold shrink-0 shadow-md hover:scale-110 transition-transform cursor-help ${goal?.textColor === 'black' ? 'text-black' : 'text-white'
+                                        }`}
+                                      style={{
+                                        backgroundColor: goal?.color,
+                                        textShadow: goal?.textColor === 'white' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(255,255,255,0.5)'
+                                      }}
                                     >
                                       {goalNum}
                                     </div>
@@ -642,7 +652,7 @@ export function BulletinBoard() {
                                     style={{ backgroundColor: goal?.color }}
                                     arrowStyle={{ backgroundColor: goal?.color, fill: goal?.color }}
                                   >
-                                    <p className="text-xs font-medium text-white">SDG {goalNum}: {goal?.name}</p>
+                                    <p className={`text-xs font-medium ${goal?.textColor === 'black' ? 'text-black' : 'text-white'}`}>SDG {goalNum}: {goal?.name}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -767,15 +777,18 @@ export function BulletinBoard() {
                     </Badge>
                     <div className="flex items-center gap-2">
                       <Badge className="bg-amber-600 hover:bg-amber-700 text-white border-0">
-                        <Award className="w-3 h-3 mr-1" />
+                        <Award className="w-3 h-3 mr-1" aria-hidden="true" />
                         {selectedActivity.pointsBreakdown?.total ?? selectedActivity.points} points
                       </Badge>
                       {selectedActivity.pointsBreakdown && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <button className="p-1 bg-amber-600/20 backdrop-blur-sm rounded-full hover:bg-amber-600/30 transition-colors">
-                                <Info className="h-3.5 w-3.5 text-white" />
+                              <button
+                                className="p-1 bg-amber-600/20 backdrop-blur-sm rounded-full hover:bg-amber-600/30 transition-colors"
+                                aria-label={`View points breakdown for ${selectedActivity.title}`}
+                              >
+                                <Info className="h-3.5 w-3.5 text-white" aria-hidden="true" />
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -849,8 +862,12 @@ export function BulletinBoard() {
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-background/50 hover:bg-background transition-colors"
                       >
                         <div
-                          className="h-5 w-5 rounded flex items-center justify-center text-xs text-white font-bold"
-                          style={{ backgroundColor: goal?.color }}
+                          className={`h-5 w-5 rounded flex items-center justify-center text-xs font-bold shadow-md ${goal?.textColor === 'black' ? 'text-black' : 'text-white'
+                            }`}
+                          style={{
+                            backgroundColor: goal?.color,
+                            textShadow: goal?.textColor === 'white' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(255,255,255,0.5)'
+                          }}
                         >
                           {goalNum}
                         </div>

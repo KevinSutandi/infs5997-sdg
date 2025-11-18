@@ -362,7 +362,7 @@ export function ActivityManagement() {
 
         <Card className="p-5">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="h-5 w-5 text-green-600" />
+            <TrendingUp className="h-5 w-5 text-green-700 dark:text-green-500" />
           </div>
           <p className="text-2xl font-bold">
             {totalCapacity > 0 ? Math.round((totalEnrolled / totalCapacity) * 100) : 0}%
@@ -444,8 +444,13 @@ export function ActivityManagement() {
                       return sdg ? (
                         <div
                           key={sdgNum}
-                          className="h-6 w-6 rounded flex items-center justify-center text-white text-xs font-bold"
-                          style={{ backgroundColor: sdg.color }}
+                          className={`h-6 w-6 rounded flex items-center justify-center text-xs font-bold shadow-md ${
+                            sdg.textColor === 'black' ? 'text-black' : 'text-white'
+                          }`}
+                          style={{ 
+                            backgroundColor: sdg.color,
+                            textShadow: sdg.textColor === 'white' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(255,255,255,0.5)'
+                          }}
                           title={sdg.name}
                         >
                           {sdgNum}
@@ -873,8 +878,13 @@ export function ActivityManagement() {
                       className="text-sm cursor-pointer flex items-center gap-2"
                     >
                       <span
-                        className="h-5 w-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                        style={{ backgroundColor: sdg.color }}
+                        className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
+                          sdg.textColor === 'black' ? 'text-black' : 'text-white'
+                        }`}
+                        style={{ 
+                          backgroundColor: sdg.color,
+                          textShadow: sdg.textColor === 'white' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(255,255,255,0.5)'
+                        }}
                       >
                         {sdg.number}
                       </span>

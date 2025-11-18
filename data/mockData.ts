@@ -675,10 +675,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1515073838964-4d4d56a58b21?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwY2xhc3Nyb29tJTIwbGVhcm5pbmd8ZW58MXx8fHwxNzYxMjA1NDkzfDA&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 400, // 40 hours over semester
-      difficulty: 100, // Level 5 (very hard)
-      sdgImpact: 45, // 3 SDGs
-      total: 545,
+      timeCommitment: 600, // 40 hours * 15 = 600 points
+      difficulty: 25, // Level 5 * 5 = 25 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 625,
       explanation:
         "This is a full semester coursework with high academic rigor, covering complex economic theories and practical applications in climate finance.",
     },
@@ -699,10 +699,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1660795308424-8ed1ccdef52a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdXN0YWluYWJpbGl0eSUyMGVudmlyb25tZW50JTIwd29ya3Nob3B8ZW58MXx8fHwxNzYxMjA1NDk0fDA&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 30, // 3 hours
-      difficulty: 40, // Level 2 (easy-moderate)
-      sdgImpact: 30, // 2 SDGs
-      total: 100,
+      timeCommitment: 45, // 3 hours * 15 = 45 points
+      difficulty: 10, // Level 2 * 5 = 10 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 55,
       explanation:
         "Hands-on practical workshop with expert facilitators. Great introduction to water sustainability.",
     },
@@ -724,10 +724,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1751666526244-40239a251eae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2b2x1bnRlZXIlMjBjb21tdW5pdHklMjBzZXJ2aWNlfGVufDF8fHx8MTc2MTE5ODE4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 200, // 20 hours over semester
-      difficulty: 60, // Level 3 (moderate)
-      sdgImpact: 45, // 3 SDGs
-      total: 305,
+      timeCommitment: 300, // 20 hours * 15 = 300 points
+      difficulty: 15, // Level 3 * 5 = 15 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 315,
       explanation:
         "Long-term commitment with meaningful community impact. Involves physical work and consistent time dedication throughout the semester.",
     },
@@ -748,10 +748,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1759496434742-771c92e66103?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25mZXJlbmNlJTIwZXZlbnQlMjBwcmVzZW50YXRpb258ZW58MXx8fHwxNzYxMTg3NDU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 40, // 4 hours (full day seminar)
-      difficulty: 40, // Level 2 (easy-moderate)
-      sdgImpact: 30, // 2 SDGs
-      total: 110,
+      timeCommitment: 60, // 4 hours * 15 = 60 points
+      difficulty: 10, // Level 2 * 5 = 10 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 70,
       explanation:
         "Full-day seminar featuring renowned international speakers. Includes networking opportunities with health professionals.",
     },
@@ -773,10 +773,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1628206554160-63e8c921e398?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZW5ld2FibGUlMjBlbmVyZ3klMjBzb2xhcnxlbnwxfHx8fDE3NjExMzQ2ODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 500, // 50 hours (intensive lab work)
-      difficulty: 100, // Level 5 (very hard - engineering)
-      sdgImpact: 45, // 3 SDGs
-      total: 645,
+      timeCommitment: 750, // 50 hours * 15 = 750 points
+      difficulty: 25, // Level 5 * 5 = 25 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 775,
       explanation:
         "Intensive hands-on engineering coursework requiring significant lab time, technical skills, and real project development. High academic rigor with industry applications.",
     },
@@ -797,10 +797,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1758270705518-b61b40527e76?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0ZWFtJTIwY29sbGFib3JhdGlvbiUyMHN0dWRlbnRzfGVufDF8fHx8MTc2MTIwNTQ5NHww&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 25, // 2.5 hours
-      difficulty: 20, // Level 1 (easy - attendance focused)
-      sdgImpact: 45, // 3 SDGs
-      total: 90,
+      timeCommitment: 37.5, // 2.5 hours * 15 = 37.5 points
+      difficulty: 5, // Level 1 * 5 = 5 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 42.5,
       explanation:
         "Evening panel with Q&A and networking. Great opportunity to connect with industry leaders and mentors in STEM.",
     },
@@ -822,10 +822,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1515073838964-4d4d56a58b21?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwY2xhc3Nyb29tJTIwbGVhcm5pbmd8ZW58MXx8fHwxNzYxMjA1NDkzfDA&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 350, // 35 hours over semester
-      difficulty: 80, // Level 4 (hard - design work)
-      sdgImpact: 45, // 3 SDGs
-      total: 475,
+      timeCommitment: 525, // 35 hours * 15 = 525 points
+      difficulty: 20, // Level 4 * 5 = 20 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 545,
       explanation:
         "Studio-based course with design projects, site analysis, and presentations. Requires creativity, technical skills, and collaborative work.",
     },
@@ -847,10 +847,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1660795308424-8ed1ccdef52a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdXN0YWluYWJpbGl0eSUyMGVudmlyb25tZW50JTIwd29ya3Nob3B8ZW58MXx8fHwxNzYxMjA1NDk0fDA&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 250, // 25 hours over semester (field work)
-      difficulty: 60, // Level 3 (moderate - outdoor physical work)
-      sdgImpact: 45, // 3 SDGs
-      total: 355,
+      timeCommitment: 375, // 25 hours * 15 = 375 points
+      difficulty: 15, // Level 3 * 5 = 15 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 390,
       explanation:
         "Semester-long field program involving beach cleanups, data collection, and marine research. Includes travel to coastal sites and hands-on conservation work.",
     },
@@ -871,10 +871,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1758270705518-b61b40527e76?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0ZWFtJTIwY29sbGFib3JhdGlvbiUyMHN0dWRlbnRzfGVufDF8fHx8MTc2MTIwNTQ5NHww&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 20, // 2 hours
-      difficulty: 20, // Level 1 (easy - interactive workshop)
-      sdgImpact: 45, // 3 SDGs
-      total: 85,
+      timeCommitment: 30, // 2 hours * 15 = 30 points
+      difficulty: 5, // Level 1 * 5 = 5 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 35,
       explanation:
         "Interactive workshop with group activities and discussions. Learn practical skills for making ethical consumer choices in daily life.",
     },
@@ -896,10 +896,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1758270705518-b61b40527e76?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0ZWFtJTIwY29sbGFib3JhdGlvbiUyMHN0dWRlbnRzfGVufDF8fHx8MTc2MTIwNTQ5NHww&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 300, // 30 hours over semester (workshops + project work)
-      difficulty: 80, // Level 4 (hard - entrepreneurship)
-      sdgImpact: 45, // 3 SDGs
-      total: 425,
+      timeCommitment: 450, // 30 hours * 15 = 450 points
+      difficulty: 20, // Level 4 * 5 = 20 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 470,
       explanation:
         "Semester-long incubator program with mentorship sessions, pitch competitions, and real business development. Requires initiative, creativity, and business planning skills.",
     },
@@ -921,10 +921,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1660795308424-8ed1ccdef52a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdXN0YWluYWJpbGl0eSUyMGVudmlyb25tZW50JTIwd29ya3Nob3B8ZW58MXx8fHwxNzYxMjA1NDk0fDA&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 450, // 45 hours (lectures + field trips)
-      difficulty: 80, // Level 4 (hard - scientific coursework)
-      sdgImpact: 45, // 3 SDGs
-      total: 575,
+      timeCommitment: 675, // 45 hours * 15 = 675 points
+      difficulty: 20, // Level 4 * 5 = 20 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 695,
       explanation:
         "Comprehensive biology course with field research components. Includes multiple field trips, lab work, species identification, and ecosystem assessment projects.",
     },
@@ -945,10 +945,10 @@ export const availableActivities: AvailableActivity[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1759496434742-771c92e66103?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25mZXJlbmNlJTIwZXZlbnQlMjBwcmVzZW50YXRpb258ZW58MXx8fHwxNzYxMTg3NDU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
     pointsBreakdown: {
-      timeCommitment: 120, // 12 hours (2-day intensive)
-      difficulty: 60, // Level 3 (moderate - skill development)
-      sdgImpact: 45, // 3 SDGs
-      total: 225,
+      timeCommitment: 180, // 12 hours * 15 = 180 points
+      difficulty: 15, // Level 3 * 5 = 15 points
+      sdgImpact: 0, // SDG count no longer contributes
+      total: 195,
       explanation:
         "Two-day intensive workshop with role-playing exercises, case studies, and practical mediation training. Develop valuable conflict resolution and communication skills.",
     },

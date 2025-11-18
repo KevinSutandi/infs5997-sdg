@@ -216,13 +216,13 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
     <div className="min-h-screen bg-linear-to-br from-background via-[#FFE600]/5 to-background">
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden md:block">
+        <aside className="hidden md:block" aria-label="Main navigation">
           <StudentSidebar onSignUpClick={() => setShowSignupDialog(true)} />
-        </div>
+        </aside>
 
         {/* Mobile Sidebar Sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="left" className="w-64 p-0" aria-label="Mobile navigation">
             <StudentSidebar 
               onLinkClick={() => setMobileMenuOpen(false)} 
               onSignUpClick={() => {
@@ -234,13 +234,20 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
         </Sheet>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+        <main id="main-content" className="flex-1 overflow-auto" role="main">
           {/* Mobile Menu Button */}
           <div className="md:hidden sticky top-0 z-40 bg-background border-b p-4">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10">
-                  <Menu className="h-5 w-5" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10"
+                  aria-label="Open navigation menu"
+                  aria-expanded={mobileMenuOpen}
+                  aria-controls="mobile-navigation"
+                >
+                  <Menu className="h-5 w-5" aria-hidden="true" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>

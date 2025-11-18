@@ -2,10 +2,9 @@
 
 import { useParams } from 'next/navigation';
 import { EventFeedbackDialog } from '@/components/EventFeedbackDialog';
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { getAvailableActivities } from '@/lib/adminAnalytics';
-import { AvailableActivity } from '@/types';
 import { toast } from 'sonner';
 import { getAllRegisteredEvents } from '@/lib/adminAnalytics';
 import { currentUser } from '@/data/mockData';
@@ -14,35 +13,39 @@ import { EventFeedback } from '@/types';
 export default function EventFeedbackPage() {
   const params = useParams();
   const eventId = params?.eventId as string;
-  const [event, setEvent] = useState<AvailableActivity | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  useEffect(() => {
-    if (!eventId) return;
+  // Compute event and user event status using useMemo to avoid cascading renders
+  const { event, initialHasSubmitted, initialShowDialog } = useMemo(() => {
+    if (!eventId) {
+      return { event: null, initialHasSubmitted: false, initialShowDialog: false };
+    }
 
-    // Find the event
     const activities = getAvailableActivities();
     const foundEvent = activities.find(a => a.id === eventId && a.category === 'event');
 
-    if (foundEvent) {
-      setEvent(foundEvent);
-
-      // Check if user has already submitted feedback
-      const registeredEvents = getAllRegisteredEvents();
-      const userEvent = registeredEvents.find(e => e.activityId === eventId);
-      if (userEvent?.feedback) {
-        setHasSubmitted(true);
-      } else if (userEvent?.status === 'attended') {
-        setShowFeedbackDialog(true);
+    if (!foundEvent) {
+      // Show error toast only once when event is not found
+      if (typeof window !== 'undefined') {
+        setTimeout(() => toast.error('Event not found'), 0);
       }
-    } else {
-      toast.error('Event not found');
+      return { event: null, initialHasSubmitted: false, initialShowDialog: false };
     }
 
-    setIsLoading(false);
+    const registeredEvents = getAllRegisteredEvents();
+    const foundUserEvent = registeredEvents.find(e => e.activityId === eventId);
+
+    const hasFeedback = !!foundUserEvent?.feedback;
+    const shouldShowDialog = !hasFeedback && foundUserEvent?.status === 'attended';
+
+    return {
+      event: foundEvent,
+      initialHasSubmitted: hasFeedback,
+      initialShowDialog: shouldShowDialog
+    };
   }, [eventId]);
+
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(initialShowDialog);
+  const [hasSubmitted, setHasSubmitted] = useState(initialHasSubmitted);
 
   const handleFeedbackSubmit = (feedback: EventFeedback) => {
     if (!eventId) return;
@@ -79,17 +82,6 @@ export default function EventFeedbackPage() {
       toast.error('You must be registered for this event to provide feedback');
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!event) {
     return (

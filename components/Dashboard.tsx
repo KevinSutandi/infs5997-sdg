@@ -209,7 +209,7 @@ export function Dashboard() {
         >
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-lg bg-linear-to-br from-green-500/20 to-green-500/10 group-hover:from-green-500/30 group-hover:to-green-500/20 transition-all">
-              <Calendar className="h-5 w-5 text-green-600" />
+              <Calendar className="h-5 w-5 text-green-700 dark:text-green-500" />
             </div>
             <div className="flex-1">
               <p className="text-xs text-muted-foreground mb-1 font-medium">

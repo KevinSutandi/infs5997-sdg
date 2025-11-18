@@ -21,6 +21,7 @@ import {
   LogIn,
   UserPlus,
 } from 'lucide-react';
+import Image from 'next/image';
 
 interface NavItem {
   title: string;
@@ -97,17 +98,12 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
   const currentActiveTab = getActiveTab();
 
   return (
-    <div className="w-64 bg-background border-r h-screen sticky top-0 overflow-y-auto shadow-lg">
+    <aside className="w-64 bg-background border-r h-screen sticky top-0 overflow-y-auto shadow-lg" aria-label="Sidebar navigation">
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="pb-4 border-b">
-          <Link href="/" onClick={onLinkClick} className="flex items-center gap-3 mb-2 cursor-pointer">
-            <div className="h-10 w-10 rounded-lg bg-linear-to-br from-[#FFE600] to-[#ffd700] flex items-center justify-center shadow-md">
-              <Trophy className="h-5 w-5 text-[#231F20]" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold">UNSW SDGgo!</h2>
-            </div>
+        <div className="pb-1 border-b">
+          <Link href="/" onClick={onLinkClick} className="flex justify-center items-center gap-3 mb-2 cursor-pointer" aria-label="UNSW SDGgo! Home">
+            <Image src="/logo.png" alt="UNSW SDGgo!" width={180} height={50} />
           </Link>
         </div>
 
@@ -126,7 +122,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold truncate">{currentUser.name}</h3>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <Trophy className="h-3 w-3 text-amber-600" />
+                    <Trophy className="h-3 w-3 text-amber-600" aria-hidden="true" />
                     <span className="text-xs text-amber-600 font-semibold">{currentUser.totalPoints} pts</span>
                   </div>
                 </div>
@@ -135,7 +131,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
               {/* Settings Text - Appears on hover */}
               <div className="absolute top-0 left-0 right-0 backdrop-blur-xs bottom-0 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
                 <div className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-black" />
+                  <Settings className="h-5 w-5 text-black" aria-hidden="true" />
                   <span className="text-base font-semibold text-black">Settings</span>
                 </div>
               </div>
@@ -154,7 +150,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
                 }}
                 className="w-full bg-linear-to-r from-[#FFE600] to-[#ffd700] hover:from-[#ffd700] hover:to-[#FFE600] text-[#231F20] font-semibold shadow-md"
               >
-                <UserPlus className="h-4 w-4 mr-2" />
+                <UserPlus className="h-4 w-4 mr-2" aria-hidden="true" />
                 Sign Up
               </Button>
               <Button
@@ -165,7 +161,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
                 }}
                 className="w-full"
               >
-                <LogIn className="h-4 w-4 mr-2" />
+                <LogIn className="h-4 w-4 mr-2" aria-hidden="true" />
                 Sign In
               </Button>
               <p className="text-xs text-center text-muted-foreground px-2">
@@ -179,10 +175,10 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
         <div className="space-y-6">
           {/* Main Section */}
           <div>
-            <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-3 px-3">
+            <h2 className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-3 px-3">
               Explore
-            </h3>
-            <nav className="space-y-1">
+            </h2>
+            <nav className="space-y-1" aria-label="Explore section">
               {navItems
                 .filter(item => item.section === 'main')
                 .map((item) => {
@@ -202,7 +198,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
                       <item.icon className={cn(
                         'h-4 w-4 transition-transform',
                         isActive ? 'text-[#231F20]' : 'group-hover:scale-110'
-                      )} />
+                      )} aria-hidden="true" />
                       <span className="text-sm font-medium">{item.title}</span>
                     </Link>
                   );
@@ -213,10 +209,10 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
           {/* Personal Section - Only show if signed in */}
           {!isGuest && (
             <div>
-              <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-3 px-3">
+              <h2 className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-3 px-3">
                 My Profile
-              </h3>
-              <nav className="space-y-1">
+              </h2>
+              <nav className="space-y-1" aria-label="My Profile section navigation">
                 {navItems
                   .filter(item => item.section === 'personal')
                   .map((item) => {
@@ -236,7 +232,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
                         <item.icon className={cn(
                           'h-4 w-4 transition-transform',
                           isActive ? 'text-[#231F20]' : 'group-hover:scale-110'
-                        )} />
+                        )} aria-hidden="true" />
                         <span className="text-sm font-medium">{item.title}</span>
                       </Link>
                     );
@@ -247,10 +243,10 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
 
           {/* Shop Section */}
           <div>
-            <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-3 px-3">
+            <h2 className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-3 px-3">
               Rewards
-            </h3>
-            <nav className="space-y-1">
+            </h2>
+            <nav className="space-y-1" aria-label="Rewards section navigation">
               {navItems
                 .filter(item => item.section === 'shop')
                 .map((item) => {
@@ -270,7 +266,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
                       <item.icon className={cn(
                         'h-4 w-4 transition-transform',
                         isActive ? 'text-[#231F20]' : 'group-hover:scale-110'
-                      )} />
+                      )} aria-hidden="true" />
                       <span className="text-sm font-medium">{item.title}</span>
                     </Link>
                   );
@@ -281,10 +277,10 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
           {/* Settings Section - Only show if signed in */}
           {!isGuest && (
             <div>
-              <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-3 px-3">
+              <h2 className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-3 px-3">
                 More
-              </h3>
-              <nav className="space-y-1">
+              </h2>
+              <nav className="space-y-1" aria-label="More section navigation">
                 {navItems
                   .filter(item => item.section === 'settings')
                   .map((item) => {
@@ -304,7 +300,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
                         <item.icon className={cn(
                           'h-4 w-4 transition-transform',
                           isActive ? 'text-[#231F20]' : 'group-hover:scale-110'
-                        )} />
+                        )} aria-hidden="true" />
                         <span className="text-sm font-medium">{item.title}</span>
                       </Link>
                     );
@@ -318,7 +314,7 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
         <div className="mt-auto pt-6 border-t space-y-4">
           <Link href="/admin" onClick={onLinkClick} className="cursor-pointer">
             <Button variant="outline" className="w-full justify-start hover:bg-accent transition-all cursor-pointer">
-              <Shield className="h-4 w-4 mr-2" />
+              <Shield className="h-4 w-4 mr-2" aria-hidden="true" />
               Admin Dashboard
             </Button>
           </Link>
@@ -338,12 +334,14 @@ export function StudentSidebar({ onLinkClick, onSignUpClick }: StudentSidebarPro
                 id="demo-toggle"
                 checked={demoSignedIn}
                 onCheckedChange={handleDemoToggle}
+                aria-describedby="demo-toggle-description"
+                aria-label="Toggle demo mode between signed in and guest view"
               />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }
 

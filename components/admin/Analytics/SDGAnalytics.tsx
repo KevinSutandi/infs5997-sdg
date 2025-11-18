@@ -110,7 +110,7 @@ export function SDGAnalytics() {
 
         <Card className="p-5">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="h-5 w-5 text-green-600" />
+            <TrendingUp className="h-5 w-5 text-green-700 dark:text-green-500" />
           </div>
           <p className="text-2xl font-bold">SDG {mostPopularSDG?.number}</p>
           <p className="text-sm text-muted-foreground">Most Popular</p>

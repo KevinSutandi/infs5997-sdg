@@ -161,20 +161,20 @@ export function RedeemStore() {
         </div>
         {!isGuest && (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setIsVouchersDialogOpen(true)}
+          <Button
+            variant="outline"
+            onClick={() => setIsVouchersDialogOpen(true)}
               className="flex items-center justify-center gap-2 hover:bg-accent transition-colors w-full sm:w-auto"
-            >
-              <Ticket className="h-4 w-4" />
-              My Vouchers
-            </Button>
+          >
+            <Ticket className="h-4 w-4" />
+            My Vouchers
+          </Button>
             <Card className="p-3 md:p-4 hover:shadow-lg transition-all bg-linear-to-br from-amber-500/10 via-amber-500/5 to-background border-amber-500/20 border-2">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-1">
-                    Available Points
-                  </p>
+              Available Points
+            </p>
                   <p className="text-2xl md:text-3xl font-black bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
                     {userPoints.toLocaleString()}
                   </p>
@@ -199,7 +199,7 @@ export function RedeemStore() {
             </div>
           </Card>
         )}
-      </div>
+        </div>
 
       {/* Search and Category Filters */}
       <Card className="p-4 md:p-6 space-y-4">
@@ -213,29 +213,29 @@ export function RedeemStore() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 pr-4 py-2 w-full"
           />
-        </div>
+      </div>
 
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            const isActive = selectedCategory === category.id;
-            return (
-              <Button
-                key={category.id}
-                variant={isActive ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category.id)}
+      {/* Category Filters */}
+      <div className="flex flex-wrap gap-2">
+        {categories.map((category) => {
+          const Icon = category.icon;
+          const isActive = selectedCategory === category.id;
+          return (
+            <Button
+              key={category.id}
+              variant={isActive ? "default" : "outline"}
+              onClick={() => setSelectedCategory(category.id)}
                 className={`flex items-center gap-2 transition-all ${isActive
                   ? "bg-linear-to-r from-amber-600 to-yellow-500 text-white shadow-md hover:shadow-lg"
                   : "hover:bg-accent"
                   }`}
-              >
-                <Icon className="h-4 w-4" />
-                {category.label}
-              </Button>
-            );
-          })}
-        </div>
+            >
+              <Icon className="h-4 w-4" />
+              {category.label}
+            </Button>
+          );
+        })}
+      </div>
 
         {/* Active Filters Summary */}
         {(searchQuery || selectedCategory !== "all") && (
@@ -336,7 +336,7 @@ export function RedeemStore() {
                       Stock
                     </span>
                     <span
-                      className={`font-semibold ${isLowStock ? "text-destructive" : "text-green-600"
+                      className={`font-semibold ${isLowStock ? "text-destructive" : "text-green-700 dark:text-green-500"
                         }`}
                     >
                       {reward.stock} available
@@ -353,14 +353,14 @@ export function RedeemStore() {
                 </div>
 
                 {/* Redeem Button */}
-                <Button
+                  <Button
                   className={`w-full font-semibold transition-all cursor-pointer ${canAfford && reward.stock > 0 && !isGuest
                     ? "bg-linear-to-r from-amber-600 to-yellow-500 hover:from-amber-700 hover:to-yellow-600 text-white shadow-md hover:shadow-lg"
                     : ""
                     }`}
                   disabled={isGuest || !canAfford || reward.stock === 0}
-                  onClick={() => handleRedeemClick(reward)}
-                >
+                    onClick={() => handleRedeemClick(reward)}
+                  >
                   {isGuest
                     ? "Sign In to Redeem"
                     : reward.stock === 0
@@ -368,7 +368,7 @@ export function RedeemStore() {
                       : !canAfford
                         ? `Need ${reward.pointsRequired - userPoints} more points`
                         : "Redeem Now"}
-                </Button>
+                  </Button>
               </div>
             </Card>
           );
@@ -456,8 +456,8 @@ export function RedeemStore() {
                   {!isGuest && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground font-medium">
-                        Your Current Points
-                      </span>
+                    Your Current Points
+                  </span>
                       <span className="text-lg font-bold">{userPoints.toLocaleString()}</span>
                     </div>
                   )}
@@ -475,21 +475,21 @@ export function RedeemStore() {
                         </div>
                         <ArrowDown className="h-4 w-4 text-amber-600" />
                         <div className="flex-1 h-px bg-border"></div>
-                      </div>
+                </div>
 
                       {/* Remaining Points */}
                       <div className="flex items-center justify-between pt-1">
                         <span className="text-sm text-muted-foreground font-medium">
-                          Remaining Points
-                        </span>
-                        <span
+                    Remaining Points
+                  </span>
+                  <span
                           className={`text-lg font-bold ${remainingPoints < 0
-                            ? "text-destructive"
-                            : "text-green-600"
+                        ? "text-destructive"
+                            : "text-green-700 dark:text-green-500"
                             }`}
-                        >
+                  >
                           {remainingPoints.toLocaleString()}
-                        </span>
+                  </span>
                       </div>
                     </>
                   )}
