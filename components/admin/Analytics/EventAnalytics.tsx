@@ -6,7 +6,6 @@ import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Progress } from '../../ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../ui/tabs';
 import { getEventAnalytics, getAllRegisteredEvents } from '@/lib/adminAnalytics';
 import { Download, Search, Star, Users, Heart, TrendingUp, Award, Target, AlertCircle, MessageSquare, ThumbsUp, ThumbsDown, QrCode } from 'lucide-react';
@@ -14,7 +13,6 @@ import { QRCodeDialog } from '../QRCodeDialog';
 
 export function EventAnalytics() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'registered' | 'attended' | 'rating' | 'favorites'>('registered');
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'positive' | 'negative'>('all');
   const [qrCodeEvent, setQrCodeEvent] = useState<{ id: string; title: string } | null>(null);
 
@@ -43,9 +41,6 @@ export function EventAnalytics() {
   const filteredData = eventData.filter(event => {
     return event.title.toLowerCase().includes(searchQuery.toLowerCase());
   }).sort((a, b) => {
-    if (sortBy === 'registered') return b.registered - a.registered;
-    if (sortBy === 'attended') return b.attended - a.attended;
-    if (sortBy === 'rating') return b.averageRating - a.averageRating;
     return b.favoriteCount - a.favoriteCount;
   });
 
@@ -177,17 +172,6 @@ export function EventAnalytics() {
               className="pl-10"
             />
           </div>
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="registered">Most Registered</SelectItem>
-              <SelectItem value="attended">Most Attended</SelectItem>
-              <SelectItem value="rating">Highest Rated</SelectItem>
-              <SelectItem value="favorites">Most Favorited</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </Card>
 
@@ -218,27 +202,27 @@ export function EventAnalytics() {
                   .sort((a, b) => b.attended - a.attended)
                   .slice(0, 5)
                   .map((event, idx) => (
-                  <div key={event.id} className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">{event.organizer}</p>
+                    <div key={event.id} className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{event.title}</p>
+                          <p className="text-xs text-muted-foreground">{event.organizer}</p>
+                        </div>
+                        <Badge variant={idx === 0 ? "default" : "secondary"}>
+                          {event.attended} attended
+                        </Badge>
                       </div>
-                      <Badge variant={idx === 0 ? "default" : "secondary"}>
-                        {event.attended} attended
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Progress
+                          value={event.attendanceRate}
+                          className="h-2 flex-1"
+                        />
+                        <span className="text-xs font-medium text-muted-foreground w-12 text-right">
+                          {event.attendanceRate.toFixed(0)}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Progress
-                        value={event.attendanceRate}
-                        className="h-2 flex-1"
-                      />
-                      <span className="text-xs font-medium text-muted-foreground w-12 text-right">
-                        {event.attendanceRate.toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </Card>
 

@@ -8,7 +8,6 @@ import { Label } from '../../ui/label';
 import { Textarea } from '../../ui/textarea';
 import { Badge } from '../../ui/badge';
 import { Progress } from '../../ui/progress';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -174,10 +173,6 @@ export function RewardManagement() {
   const averageCost = rewardsList.length > 0
     ? Math.round(rewardsList.reduce((sum, r) => sum + r.pointsRequired, 0) / rewardsList.length)
     : 0;
-  const merchandiseCount = rewardsList.filter(r => r.category === 'merchandise').length;
-  const discountCount = rewardsList.filter(r => r.category === 'discount').length;
-  const foodCount = rewardsList.filter(r => r.category === 'food').length;
-  const experienceCount = rewardsList.filter(r => r.category === 'experience').length;
 
   return (
     <div className="space-y-6">
@@ -230,209 +225,83 @@ export function RewardManagement() {
         </Card>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="list" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="list">Reward List</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+      {/* Search */}
+      <Card className="p-4 bg-muted/30">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search rewards..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </Card>
 
-        {/* List Tab */}
-        <TabsContent value="list" className="space-y-6">
-          {/* Search */}
-          <Card className="p-4 bg-muted/30">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search rewards..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </Card>
-
-          {/* Rewards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredRewards.map((reward) => (
-              <Card key={reward.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-lg">{reward.title}</h3>
-                      <Badge className="capitalize">{reward.category}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">{reward.description}</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm text-muted-foreground">Points Required</span>
-                      <div className="flex items-center gap-1">
-                        <Award className="h-4 w-4 text-amber-600" />
-                        <span className="font-semibold">{reward.pointsRequired}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-3 bg-muted/30 rounded-lg">
-                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                        <span>Stock</span>
-                        <span>{reward.stock} available</span>
-                      </div>
-                      <Progress
-                        value={reward.stock > 0 ? Math.min((reward.stock / 100) * 100, 100) : 0}
-                        className="h-2"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 pt-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(reward)}
-                      className="flex-1"
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(reward)}
-                      className="flex-1 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {filteredRewards.length === 0 && (
-            <Card className="p-12 text-center">
-              <p className="text-muted-foreground">No rewards found</p>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          {/* Category Distribution */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Category Distribution</h3>
+      {/* Rewards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredRewards.map((reward) => (
+          <Card key={reward.id} className="p-6 hover:shadow-lg transition-shadow">
             <div className="space-y-4">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Merchandise</span>
-                  <span className="text-sm font-semibold">{merchandiseCount} ({totalRewards > 0 ? Math.round((merchandiseCount / totalRewards) * 100) : 0}%)</span>
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-lg">{reward.title}</h3>
+                  <Badge className="capitalize">{reward.category}</Badge>
                 </div>
-                <Progress value={totalRewards > 0 ? (merchandiseCount / totalRewards) * 100 : 0} className="h-2" />
+                <p className="text-sm text-muted-foreground line-clamp-2">{reward.description}</p>
               </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Discounts</span>
-                  <span className="text-sm font-semibold">{discountCount} ({totalRewards > 0 ? Math.round((discountCount / totalRewards) * 100) : 0}%)</span>
-                </div>
-                <Progress value={totalRewards > 0 ? (discountCount / totalRewards) * 100 : 0} className="h-2" />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Food & Beverage</span>
-                  <span className="text-sm font-semibold">{foodCount} ({totalRewards > 0 ? Math.round((foodCount / totalRewards) * 100) : 0}%)</span>
-                </div>
-                <Progress value={totalRewards > 0 ? (foodCount / totalRewards) * 100 : 0} className="h-2" />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Experiences</span>
-                  <span className="text-sm font-semibold">{experienceCount} ({totalRewards > 0 ? Math.round((experienceCount / totalRewards) * 100) : 0}%)</span>
-                </div>
-                <Progress value={totalRewards > 0 ? (experienceCount / totalRewards) * 100 : 0} className="h-2" />
-              </div>
-            </div>
-          </Card>
 
-          {/* Price Range Analysis */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Price Range Analysis</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Low (0-500 pts)</p>
-                <p className="text-2xl font-bold">
-                  {rewardsList.filter(r => r.pointsRequired < 500).length}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">rewards</p>
-              </div>
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Medium (500-1500 pts)</p>
-                <p className="text-2xl font-bold">
-                  {rewardsList.filter(r => r.pointsRequired >= 500 && r.pointsRequired < 1500).length}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">rewards</p>
-              </div>
-              <div className="text-center p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">High (1500+ pts)</p>
-                <p className="text-2xl font-bold">
-                  {rewardsList.filter(r => r.pointsRequired >= 1500).length}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">rewards</p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Most Expensive Rewards */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Most Expensive Rewards</h3>
-            <div className="space-y-3">
-              {[...rewardsList]
-                .sort((a, b) => b.pointsRequired - a.pointsRequired)
-                .slice(0, 10)
-                .map((reward) => (
-                  <div key={reward.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <div className="flex-1 min-w-0 mr-3">
-                      <p className="font-medium text-sm truncate">{reward.title}</p>
-                      <Badge variant="secondary" className="text-xs capitalize mt-1">{reward.category}</Badge>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{reward.pointsRequired}</p>
-                      <p className="text-xs text-muted-foreground">points</p>
-                    </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <span className="text-sm text-muted-foreground">Points Required</span>
+                  <div className="flex items-center gap-1">
+                    <Award className="h-4 w-4 text-amber-600" />
+                    <span className="font-semibold">{reward.pointsRequired}</span>
                   </div>
-                ))}
-            </div>
-          </Card>
+                </div>
 
-          {/* Stock Availability */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Stock Availability</h3>
-            <div className="space-y-3">
-              {[...rewardsList]
-                .sort((a, b) => a.stock - b.stock)
-                .slice(0, 10)
-                .map((reward) => (
-                  <div key={reward.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm">{reward.title}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{reward.stock} left</span>
-                        {reward.stock < 10 && (
-                          <Badge variant="destructive" className="text-xs">Low Stock</Badge>
-                        )}
-                      </div>
-                    </div>
-                    <Progress
-                      value={Math.min((reward.stock / 100) * 100, 100)}
-                      className="h-2"
-                    />
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>Stock</span>
+                    <span>{reward.stock} available</span>
                   </div>
-                ))}
+                  <Progress
+                    value={reward.stock > 0 ? Math.min((reward.stock / 100) * 100, 100) : 0}
+                    className="h-2"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEdit(reward)}
+                  className="flex-1"
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(reward)}
+                  className="flex-1 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
             </div>
           </Card>
-        </TabsContent>
-      </Tabs>
+        ))}
+      </div>
+
+      {filteredRewards.length === 0 && (
+        <Card className="p-12 text-center">
+          <p className="text-muted-foreground">No rewards found</p>
+        </Card>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={isCreateDialogOpen || isEditDialogOpen} onOpenChange={(open) => {

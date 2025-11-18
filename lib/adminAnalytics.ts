@@ -695,3 +695,76 @@ export function getActivityTypeAnalytics() {
     },
   };
 }
+
+/**
+ * Generate mock redemption analytics for rewards
+ * In a real app, this would query redemption data from the database
+ */
+export interface RewardRedemptionStats {
+  rewardId: string;
+  title: string;
+  category: string;
+  pointsRequired: number;
+  initialStock: number;
+  currentStock: number;
+  redemptions: number;
+  redemptionRate: number; // percentage of initial stock redeemed
+  totalPointsRedeemed: number;
+  stockTurnoverRate: number; // redemptions / initialStock
+}
+
+export function getRewardRedemptionAnalytics(
+  rewards: Array<{
+    id: string;
+    stock: number;
+    pointsRequired: number;
+    category: string;
+    title: string;
+  }>
+): RewardRedemptionStats[] {
+  // Generate deterministic mock redemption data
+  const stats: RewardRedemptionStats[] = rewards.map((reward) => {
+    // Use hash function for deterministic "random" numbers
+    const seed = hash(reward.id);
+
+    // Assume initial stock was higher (current stock + redemptions)
+    // Generate redemptions based on reward popularity (deterministic)
+    const popularityFactor = (seed % 100) / 100; // 0-1
+
+    // Initial stock estimate: current stock + some redemptions
+    // More popular rewards have higher initial stock and more redemptions
+    const baseInitialStock = reward.stock + Math.floor(10 + (seed % 90)); // 10-100 additional
+    const initialStock = Math.max(baseInitialStock, reward.stock + 5);
+
+    // Redemptions: popular rewards (high popularityFactor) get more redemptions
+    // Range: 5-85% of initial stock redeemed
+    const redemptionPercentage = 0.05 + popularityFactor * 0.8;
+    const redemptions = Math.floor(initialStock * redemptionPercentage);
+
+    // Ensure redemptions don't exceed what's possible
+    const maxPossibleRedemptions = initialStock - reward.stock;
+    const actualRedemptions = Math.min(redemptions, maxPossibleRedemptions);
+
+    // Calculate metrics
+    const redemptionRate =
+      initialStock > 0 ? (actualRedemptions / initialStock) * 100 : 0;
+    const totalPointsRedeemed = actualRedemptions * reward.pointsRequired;
+    const stockTurnoverRate =
+      initialStock > 0 ? actualRedemptions / initialStock : 0;
+
+    return {
+      rewardId: reward.id,
+      title: reward.title,
+      category: reward.category,
+      pointsRequired: reward.pointsRequired,
+      initialStock,
+      currentStock: reward.stock,
+      redemptions: actualRedemptions,
+      redemptionRate: Math.round(redemptionRate * 10) / 10, // Round to 1 decimal
+      totalPointsRedeemed,
+      stockTurnoverRate: Math.round(stockTurnoverRate * 1000) / 1000, // Round to 3 decimals
+    };
+  });
+
+  return stats;
+}

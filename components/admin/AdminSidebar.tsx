@@ -26,6 +26,7 @@ const navItems: NavItem[] = [
   { title: 'SDG Analytics', href: '/admin/sdg', icon: BarChart3, section: 'analytics' },
   { title: 'Event Analytics', href: '/admin/events', icon: Calendar, section: 'analytics' },
   { title: 'Faculty Comparison', href: '/admin/faculty', icon: Building2, section: 'analytics' },
+  { title: 'Reward Analytics', href: '/admin/rewards/analytics', icon: BarChart3, section: 'analytics' },
   { title: 'Activities & Events', href: '/admin/activities', icon: Settings, section: 'management' },
   { title: 'Rewards', href: '/admin/rewards', icon: Gift, section: 'management' },
 ];

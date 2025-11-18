@@ -9,25 +9,18 @@ import { Progress } from '../../ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../ui/tabs';
 import { getSDGAnalytics } from '@/lib/adminAnalytics';
-import { SDG_GOALS } from '@/types';
 import { Download, Search, TrendingUp, Users, Award, Target, BarChart3 } from 'lucide-react';
 
 export function SDGAnalytics() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [facultyFilter, setFacultyFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'participants' | 'points' | 'activities'>('participants');
 
   const sdgData = getSDGAnalytics();
-  
-  // Get unique faculties
-  const faculties = Array.from(new Set(sdgData.flatMap(sdg => 
-    Array.from(sdg.facultyBreakdown.keys())
-  )));
 
   // Filter and sort
-  let filteredData = sdgData.filter(sdg => {
+  const filteredData = sdgData.filter(sdg => {
     const matchesSearch = sdg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         sdg.number.toString().includes(searchQuery);
+      sdg.number.toString().includes(searchQuery);
     return matchesSearch;
   });
 
@@ -116,7 +109,7 @@ export function SDGAnalytics() {
           <p className="text-sm text-muted-foreground">Most Popular</p>
         </Card>
       </div>
-        
+
       {/* Filters */}
       <Card className="p-4 bg-muted/30">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
@@ -129,7 +122,19 @@ export function SDGAnalytics() {
               className="pl-10"
             />
           </div>
-          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+        </div>
+      </Card>
+
+      {/* Tabs for different views */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <div className="flex items-center gap-2 justify-between">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="details">Detailed Table</TabsTrigger>
+            <TabsTrigger value="comparison">Comparison</TabsTrigger>
+          </TabsList>
+
+          <Select value={sortBy} onValueChange={(v: 'participants' | 'points' | 'activities') => setSortBy(v)} >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
@@ -140,15 +145,6 @@ export function SDGAnalytics() {
             </SelectContent>
           </Select>
         </div>
-      </Card>
-
-      {/* Tabs for different views */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="details">Detailed Table</TabsTrigger>
-          <TabsTrigger value="comparison">Comparison</TabsTrigger>
-        </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
@@ -177,8 +173,8 @@ export function SDGAnalytics() {
                       </div>
                       <p className="font-semibold text-sm ml-2">{sdg.totalPoints.toLocaleString()}</p>
                     </div>
-                    <Progress 
-                      value={(sdg.participants / filteredData[0].participants) * 100} 
+                    <Progress
+                      value={(sdg.participants / filteredData[0].participants) * 100}
                       className="h-2"
                     />
                   </div>
@@ -294,8 +290,8 @@ export function SDGAnalytics() {
               <h3 className="text-lg font-semibold mb-4">Points vs Participants</h3>
               <div className="space-y-3">
                 {filteredData.slice(0, 8).map((sdg) => {
-                  const avgPointsPerParticipant = sdg.participants > 0 
-                    ? Math.round(sdg.totalPoints / sdg.participants) 
+                  const avgPointsPerParticipant = sdg.participants > 0
+                    ? Math.round(sdg.totalPoints / sdg.participants)
                     : 0;
                   return (
                     <div key={sdg.number} className="flex items-center justify-between p-2 hover:bg-muted/30 rounded">
