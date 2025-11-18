@@ -29,6 +29,13 @@ export function Ranking() {
     return false;
   });
 
+  // Check if user is signed in (respects demo mode toggle)
+  const DEMO_MODE_STORAGE_KEY = 'sdg-demo-mode-signed-in';
+  const demoSignedIn = typeof window !== 'undefined' 
+    ? (localStorage.getItem(DEMO_MODE_STORAGE_KEY) ?? 'true') === 'true' // Default to signed in
+    : true;
+  const isGuest = !demoSignedIn; // Demo toggle controls guest state
+
   // Listen for storage changes (when settings are updated)
   useEffect(() => {
     const handleStorageChange = () => {
@@ -135,6 +142,13 @@ export function Ranking() {
     setProfileOpen(true);
   };
 
+  // Reset friends filter if in guest mode
+  useEffect(() => {
+    if (isGuest && scopeFilter === 'friends') {
+      setScopeFilter('global');
+    }
+  }, [isGuest, scopeFilter]);
+
   const getFilteredStudents = () => {
     let filtered = [...allStudents];
 
@@ -148,9 +162,15 @@ export function Ranking() {
 
     // Apply scope filter
     if (scopeFilter === 'faculty') {
-      filtered = filtered.filter(s => s.faculty === currentUser.faculty);
+      // In guest mode, show all students (can't filter by faculty without user data)
+      if (!isGuest) {
+        filtered = filtered.filter(s => s.faculty === currentUser.faculty);
+      }
     } else if (scopeFilter === 'friends') {
-      filtered = filtered.filter(s => followedUsers.includes(s.id) || s.id === currentUser.id);
+      // Friends filter only works when signed in
+      if (!isGuest) {
+        filtered = filtered.filter(s => followedUsers.includes(s.id) || s.id === currentUser.id);
+      }
     }
 
     // Sort by selected time period
@@ -210,13 +230,13 @@ export function Ranking() {
     return 'All Time';
   };
 
-  const currentUserInFiltered = filteredStudents.find(s => s.id === currentUser.id);
+  const currentUserInFiltered = isGuest ? null : filteredStudents.find(s => s.id === currentUser.id);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
+      <div>
           <h1 className="text-2xl md:text-3xl font-bold bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
             Leaderboard
           </h1>
@@ -229,93 +249,95 @@ export function Ranking() {
       {/* Search and Filters Card */}
       <Card className="p-4 md:p-6 shadow-md">
         <div className="space-y-4">
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by Student ID or name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by Student ID or name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
 
           <div className="border-t pt-4 space-y-4">
             {/* Filters in Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Scope Filter */}
-              <div>
+          {/* Scope Filter */}
+          <div>
                 <p className="text-sm font-semibold mb-2 flex items-center gap-2">
                   <span className="h-1 w-1 rounded-full bg-amber-600" />
                   View Rankings
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={scopeFilter === 'global' ? 'default' : 'outline'}
-                    onClick={() => setScopeFilter('global')}
-                    className="flex items-center gap-2"
-                  >
-                    <Building2 className="h-4 w-4" />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={scopeFilter === 'global' ? 'default' : 'outline'}
+                onClick={() => setScopeFilter('global')}
+                className="flex items-center gap-2"
+              >
+                <Building2 className="h-4 w-4" />
                     University
-                  </Button>
-                  <Button
-                    variant={scopeFilter === 'faculty' ? 'default' : 'outline'}
-                    onClick={() => setScopeFilter('faculty')}
-                    className="flex items-center gap-2"
-                  >
-                    <GraduationCap className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={scopeFilter === 'faculty' ? 'default' : 'outline'}
+                onClick={() => setScopeFilter('faculty')}
+                className="flex items-center gap-2"
+              >
+                <GraduationCap className="h-4 w-4" />
                     Faculty
-                  </Button>
-                  <Button
-                    variant={scopeFilter === 'friends' ? 'default' : 'outline'}
-                    onClick={() => setScopeFilter('friends')}
-                    className="flex items-center gap-2"
-                  >
-                    <Users className="h-4 w-4" />
-                    Friends
-                  </Button>
-                </div>
-              </div>
+              </Button>
+              {!isGuest && (
+                <Button
+                  variant={scopeFilter === 'friends' ? 'default' : 'outline'}
+                  onClick={() => setScopeFilter('friends')}
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Friends
+                </Button>
+              )}
+            </div>
+          </div>
 
-              {/* Time Period Filter */}
-              <div>
+          {/* Time Period Filter */}
+          <div>
                 <p className="text-sm font-semibold mb-2 flex items-center gap-2">
                   <span className="h-1 w-1 rounded-full bg-amber-600" />
                   Time Period
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={timeFilter === 'alltime' ? 'default' : 'outline'}
-                    onClick={() => setTimeFilter('alltime')}
-                  >
-                    All-time
-                  </Button>
-                  <Button
-                    variant={timeFilter === 'monthly' ? 'default' : 'outline'}
-                    onClick={() => setTimeFilter('monthly')}
-                  >
-                    Monthly
-                  </Button>
-                  <Button
-                    variant={timeFilter === 'weekly' ? 'default' : 'outline'}
-                    onClick={() => setTimeFilter('weekly')}
-                  >
-                    Weekly
-                  </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={timeFilter === 'alltime' ? 'default' : 'outline'}
+                onClick={() => setTimeFilter('alltime')}
+              >
+                All-time
+              </Button>
+              <Button
+                variant={timeFilter === 'monthly' ? 'default' : 'outline'}
+                onClick={() => setTimeFilter('monthly')}
+              >
+                Monthly
+              </Button>
+              <Button
+                variant={timeFilter === 'weekly' ? 'default' : 'outline'}
+                onClick={() => setTimeFilter('weekly')}
+              >
+                Weekly
+              </Button>
                 </div>
-              </div>
             </div>
+          </div>
 
-            {/* Active Filter Info */}
+          {/* Active Filter Info */}
             <div className="flex items-center gap-2 flex-wrap text-sm pt-3 border-t">
               <span className="text-muted-foreground">Showing:</span>
               <Badge variant="secondary" className="font-semibold">
-                {scopeFilter === 'global' ? 'University-wide' : scopeFilter === 'faculty' ? currentUser.faculty : 'Friends Only'}
-              </Badge>
+              {scopeFilter === 'global' ? 'University-wide' : scopeFilter === 'faculty' ? (!isGuest ? currentUser.faculty : 'Faculty') : 'Friends Only'}
+            </Badge>
               <span className="text-muted-foreground">•</span>
               <Badge variant="secondary" className="font-semibold">
-                {getTimePeriodLabel()}
-              </Badge>
+              {getTimePeriodLabel()}
+            </Badge>
               <span className="text-muted-foreground">•</span>
               <Badge variant="secondary" className="font-semibold">
                 {filteredStudents.length} {filteredStudents.length === 1 ? 'student' : 'students'}
@@ -340,9 +362,9 @@ export function Ranking() {
               const ringColor = index === 0 ? 'ring-yellow-500/50' : index === 1 ? 'ring-slate-400/50' : 'ring-orange-600/50';
 
               return (
-                <Card
-                  key={student.id}
-                  className={`${heightClass} p-6 pt-12 text-center cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden ${student.id === currentUser.id ? 'ring-2 ring-primary' : ''
+            <Card
+              key={student.id}
+                  className={`${heightClass} p-6 pt-12 text-center cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all relative overflow-hidden ${!isGuest && student.id === currentUser.id ? 'ring-2 ring-primary' : ''
                     } ${index === 0
                       ? 'md:order-2 bg-linear-to-br from-amber-500/20 via-amber-500/10 to-background border-amber-500/40 border-2 shadow-lg shadow-amber-500/20'
                       : ''
@@ -353,8 +375,8 @@ export function Ranking() {
                       ? 'md:order-3 bg-linear-to-br from-orange-600/10 to-background border-orange-600/30 border-2'
                       : ''
                     }`}
-                  onClick={() => handleViewProfile(student)}
-                >
+              onClick={() => handleViewProfile(student)}
+            >
                   {/* Rank Badge at Top */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 translate-y-1/4">
                     <div className={`h-12 w-12 rounded-full flex items-center justify-center ${getRankBadgeColor(student.rank!)} shadow-lg`}>
@@ -363,17 +385,17 @@ export function Ranking() {
                   </div>
 
                   <div className="flex flex-col items-center gap-4 mt-6">
-                    <div className="relative">
+                <div className="relative">
                       <div className={`absolute inset-0 rounded-full blur-xl ${index === 0 ? 'bg-amber-500/30' : index === 1 ? 'bg-slate-400/20' : 'bg-orange-600/20'
                         }`} />
                       <Avatar className={`h-24 w-24 ring-4 ${ringColor} relative`}>
                         <AvatarImage src={getDisplayAvatar(student)} alt={getDisplayName(student)} />
                         <AvatarFallback className="text-lg">{getAvatarFallback(student)}</AvatarFallback>
-                      </Avatar>
+                  </Avatar>
                       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 drop-shadow-lg">
-                        {getRankIcon(student.rank!)}
-                      </div>
-                    </div>
+                    {getRankIcon(student.rank!)}
+                  </div>
+                </div>
 
                     <div className="space-y-2">
                       <h3 className="font-bold text-lg hover:text-primary transition-colors line-clamp-1">
@@ -434,15 +456,15 @@ export function Ranking() {
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                         {timeFilter === 'weekly' ? 'pts this week' : timeFilter === 'monthly' ? 'pts this month' : 'total points'}
                       </p>
-                    </div>
+                </div>
 
-                    {student.id === currentUser.id && (
+                {!isGuest && student.id === currentUser.id && (
                       <Badge className="bg-primary hover:bg-primary shadow-md">
                         🎯 You
                       </Badge>
-                    )}
-                  </div>
-                </Card>
+                )}
+              </div>
+            </Card>
               );
             })}
           </div>
@@ -463,33 +485,33 @@ export function Ranking() {
         <div className="space-y-3">
           {filteredStudents.map((student) => {
             const isTopThree = student.rank! <= 3;
-            const isCurrentUser = student.id === currentUser.id;
+            const isCurrentUser = !isGuest && student.id === currentUser.id;
 
             return (
-              <div
-                key={student.id}
+            <div
+              key={student.id}
                 className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl transition-all group ${isCurrentUser
                   ? 'bg-linear-to-r from-primary/10 to-primary/5 border-2 border-primary hover:shadow-lg hover:shadow-primary/20'
                   : isTopThree
                     ? 'bg-linear-to-r from-amber-500/5 to-background border border-amber-500/20 hover:shadow-lg hover:border-amber-500/40'
                     : 'bg-accent/20 hover:bg-accent/40 hover:shadow-md border border-transparent'
-                  }`}
-              >
-                {/* Rank Badge */}
+                }`}
+            >
+              {/* Rank Badge */}
                 <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 font-bold text-lg transition-transform group-hover:scale-110 ${getRankBadgeColor(student.rank!)}`}>
-                  {student.rank}
-                </div>
+                {student.rank}
+              </div>
 
-                {/* Avatar and Student Info - Clickable */}
-                <div
-                  className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer"
-                  onClick={() => handleViewProfile(student)}
-                >
+              {/* Avatar and Student Info - Clickable */}
+              <div
+                className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer"
+                onClick={() => handleViewProfile(student)}
+              >
                   <div className="relative">
                     <Avatar className="h-14 w-14 shrink-0 ring-2 ring-background group-hover:ring-primary/30 transition-all">
                       <AvatarImage src={getDisplayAvatar(student)} alt={getDisplayName(student)} />
                       <AvatarFallback className="font-semibold">{getAvatarFallback(student)}</AvatarFallback>
-                    </Avatar>
+                </Avatar>
                     {isTopThree && (
                       <div className="absolute -bottom-1 -right-1">
                         {getRankIcon(student.rank!)}
@@ -497,9 +519,9 @@ export function Ranking() {
                     )}
                   </div>
 
-                  {/* Student Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                {/* Student Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-bold group-hover:text-primary transition-colors">
                         {getDisplayName(student)}
                       </h4>
@@ -507,17 +529,17 @@ export function Ranking() {
                         <Badge className="bg-primary hover:bg-primary">
                           🎯 You
                         </Badge>
-                      )}
+                    )}
                       {followedUsers.includes(student.id) && !isCurrentUser && !shouldBeAnonymous(student) && (
-                        <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs">
                           ⭐ Following
-                        </Badge>
-                      )}
-                    </div>
+                      </Badge>
+                    )}
+                  </div>
                     <div className="flex items-center gap-2 flex-wrap mt-1">
                       <p className="text-sm text-muted-foreground truncate">
-                        {student.faculty}
-                      </p>
+                    {student.faculty}
+                  </p>
                       {/* Badges */}
                       {student.badges && student.badges.filter((b) => b.earned).length > 0 && (
                         <div className="flex items-center gap-1">
@@ -561,41 +583,41 @@ export function Ranking() {
                         </div>
                       )}
                     </div>
-                  </div>
                 </div>
+              </div>
 
-                {/* Points */}
+              {/* Points */}
                 <div className="text-left sm:text-right shrink-0 w-full sm:w-auto sm:min-w-[100px]">
                   <p className={`text-xl sm:text-2xl font-black transition-colors ${isTopThree ? 'text-amber-600' : 'text-foreground'
                     }`}>
                     {getPointsForTimeFilter(student).toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                    {timeFilter === 'weekly' ? 'this week' : timeFilter === 'monthly' ? 'this month' : 'total'}
-                  </p>
-                </div>
+                  {timeFilter === 'weekly' ? 'this week' : timeFilter === 'monthly' ? 'this month' : 'total'}
+                </p>
+              </div>
 
-                {/* Follow Button - Only show for non-anonymous, non-current users */}
-                {!isCurrentUser && !shouldBeAnonymous(student) && (
+                {/* Follow Button - Only show for non-anonymous, non-current users, and when signed in */}
+                {!isGuest && !isCurrentUser && !shouldBeAnonymous(student) && (
                   <div className="shrink-0 w-full sm:w-auto">
-                    <Button
-                      variant={followedUsers.includes(student.id) ? 'outline' : 'default'}
-                      size="sm"
+                  <Button
+                    variant={followedUsers.includes(student.id) ? 'outline' : 'default'}
+                    size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleFollow(student.id);
                       }}
                       className="transition-all hover:scale-105"
-                    >
-                      {followedUsers.includes(student.id) ? (
-                        <UserCheck className="h-4 w-4" />
-                      ) : (
-                        <UserPlus className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </div>
+                  >
+                    {followedUsers.includes(student.id) ? (
+                      <UserCheck className="h-4 w-4" />
+                    ) : (
+                      <UserPlus className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              )}
+                </div>
             );
           })}
         </div>
@@ -617,14 +639,14 @@ export function Ranking() {
 
       {/* User Profile Dialog */}
       {selectedUser && (
-        <UserProfile
-          user={selectedUser}
-          open={profileOpen}
-          onOpenChange={setProfileOpen}
+      <UserProfile
+        user={selectedUser}
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
           isCurrentUser={selectedUser.id === currentUser.id}
           isAnonymous={shouldBeAnonymous(selectedUser)}
           anonymousName={shouldBeAnonymous(selectedUser) ? generateAnonymousName(selectedUser.id) : undefined}
-        />
+      />
       )}
     </div>
   );

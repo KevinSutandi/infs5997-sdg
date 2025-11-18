@@ -152,8 +152,8 @@ export function Dashboard() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs text-muted-foreground font-medium mb-1">
-                Total Points
-              </p>
+            Total Points
+          </p>
               <p className="text-2xl md:text-3xl font-black bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
                 {currentUser.totalPoints.toLocaleString()}
               </p>
@@ -284,17 +284,17 @@ export function Dashboard() {
             const showProgress = progress.percentage > 0 && progress.percentage < 100;
 
             return (
-              <Card
-                key={badge.id}
+            <Card
+              key={badge.id}
                 className="p-4 text-center opacity-60 grayscale hover:opacity-80 hover:grayscale-0 transition-all border-2 border-muted"
-              >
+            >
                 <div className="w-16 h-16 rounded-xl mx-auto mb-3 flex items-center justify-center text-3xl bg-muted/50">
-                  {badge.icon}
-                </div>
+                {badge.icon}
+              </div>
                 <h4 className="mb-1.5 font-semibold text-sm">{badge.name}</h4>
                 <p className="text-xs text-muted-foreground mb-2.5 line-clamp-2 min-h-[32px]">
-                  {badge.description}
-                </p>
+                {badge.description}
+              </p>
 
                 {showProgress && (
                   <div className="mb-2.5 space-y-1.5">
@@ -315,9 +315,9 @@ export function Dashboard() {
                 )}
 
                 <Badge variant="outline" className="text-xs w-full justify-center">
-                  {badge.requirement}
-                </Badge>
-              </Card>
+                {badge.requirement}
+              </Badge>
+            </Card>
             );
           })}
         </div>
@@ -477,10 +477,10 @@ export function Dashboard() {
                   </p>
                   <div className="flex items-center gap-2.5">
                     <div className="flex-1">
-                      <Progress
-                        value={Math.min(count * 20, 100)}
-                        className="h-2"
-                      />
+                    <Progress
+                      value={Math.min(count * 20, 100)}
+                      className="h-2"
+                    />
                     </div>
                     <Badge variant="secondary" className="text-xs font-semibold whitespace-nowrap">
                       {count} {count === 1 ? "activity" : "activities"}

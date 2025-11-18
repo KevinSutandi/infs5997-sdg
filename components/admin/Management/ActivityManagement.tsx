@@ -35,14 +35,26 @@ import {
 import { Checkbox } from '../../ui/checkbox';
 import { availableActivities } from '@/data/mockData';
 import { AvailableActivity, SDG_GOALS, PointsBreakdown } from '@/types';
-import { Plus, Search, Edit, Trash2, Calendar, MapPin, Users, Award, BarChart3, TrendingUp, Calculator, Info } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Calendar, MapPin, Users, Award, BarChart3, TrendingUp, Calculator, Info, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../ui/tabs';
 import { Progress } from '../../ui/progress';
 import { Slider } from '../../ui/slider';
+import { QRCodeDialog } from '../QRCodeDialog';
 
 // Local storage key for activities (in real app, this would be API calls)
 const ACTIVITIES_STORAGE_KEY = 'sdg-admin-activities';
+
+// Helper function to format dates consistently (prevents hydration mismatches)
+const formatDate = (dateString: string): string => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  // Use consistent format: DD/MM/YYYY
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
 
 export function ActivityManagement() {
   const [activities, setActivities] = useState<AvailableActivity[]>(() => {
@@ -64,6 +76,7 @@ export function ActivityManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<AvailableActivity | null>(null);
+  const [qrCodeEvent, setQrCodeEvent] = useState<{ id: string; title: string } | null>(null);
   const [formData, setFormData] = useState<Partial<AvailableActivity>>({
     title: '',
     description: '',
@@ -94,11 +107,12 @@ export function ActivityManagement() {
   }, [activities]);
 
   // Calculate points based on breakdown (memoized to avoid re-renders)
+  // Note: SDG count no longer contributes to points - all SDGs are equally important
   const calculatePoints = useCallback((hours: number, difficulty: number, sdgCount: number, explanation: string): PointsBreakdown => {
-    const timePoints = hours * 10;
-    const difficultyPoints = difficulty * 20;
-    const impactPoints = sdgCount * 15;
-    const total = timePoints + difficultyPoints + impactPoints;
+    const timePoints = hours * 15; // Increased weight for time commitment
+    const difficultyPoints = difficulty * 5; // Decreased weight for difficulty
+    const impactPoints = 0; // SDG count no longer contributes to points
+    const total = timePoints + difficultyPoints;
 
     return {
       timeCommitment: timePoints,
@@ -109,8 +123,12 @@ export function ActivityManagement() {
     };
   }, []);
 
+  // Force calculator for events
+  const isEvent = formData.category === 'event';
+  const effectiveUseCalculator = isEvent ? true : useCalculator;
+
   // Get calculated points (computed value, not effect)
-  const calculatedBreakdown = useCalculator
+  const calculatedBreakdown = effectiveUseCalculator
     ? calculatePoints(
       timeCommitmentHours,
       difficultyLevel,
@@ -120,7 +138,7 @@ export function ActivityManagement() {
     : null;
 
   // Sync calculated points to formData when calculator is enabled
-  const currentPoints = useCalculator && calculatedBreakdown ? calculatedBreakdown.total : formData.points;
+  const currentPoints = effectiveUseCalculator && calculatedBreakdown ? calculatedBreakdown.total : formData.points;
 
   const handleCreate = () => {
     setFormData({
@@ -152,17 +170,33 @@ export function ActivityManagement() {
       sdgGoals: activity.sdgGoals || [],
     });
 
-    // Initialize calculator values from existing breakdown if available
-    if (activity.pointsBreakdown) {
-      setTimeCommitmentHours(activity.pointsBreakdown.timeCommitment / 10);
-      setDifficultyLevel(activity.pointsBreakdown.difficulty / 20);
-      setPointsExplanation(activity.pointsBreakdown.explanation || '');
+    // For events, always use calculator
+    if (activity.category === 'event') {
+      if (activity.pointsBreakdown) {
+        // Extract values from breakdown (using new multipliers: /15 and /5)
+        setTimeCommitmentHours(activity.pointsBreakdown.timeCommitment / 15);
+        setDifficultyLevel(activity.pointsBreakdown.difficulty / 5);
+        setPointsExplanation(activity.pointsBreakdown.explanation || '');
+      } else {
+        // Default values if no breakdown exists
+        setTimeCommitmentHours(1);
+        setDifficultyLevel(3);
+        setPointsExplanation('');
+      }
       setUseCalculator(true);
     } else {
-      setTimeCommitmentHours(1);
-      setDifficultyLevel(3);
-      setPointsExplanation('');
-      setUseCalculator(false);
+      // For non-events, check if breakdown exists
+      if (activity.pointsBreakdown) {
+        setTimeCommitmentHours(activity.pointsBreakdown.timeCommitment / 15);
+        setDifficultyLevel(activity.pointsBreakdown.difficulty / 5);
+        setPointsExplanation(activity.pointsBreakdown.explanation || '');
+        setUseCalculator(true);
+      } else {
+        setTimeCommitmentHours(1);
+        setDifficultyLevel(3);
+        setPointsExplanation('');
+        setUseCalculator(false);
+      }
     }
 
     setIsEditDialogOpen(true);
@@ -176,7 +210,7 @@ export function ActivityManagement() {
   const handleSave = () => {
     // Use calculated points if calculator is enabled
     const finalPoints = currentPoints;
-    const finalBreakdown = useCalculator && calculatedBreakdown ? calculatedBreakdown : formData.pointsBreakdown;
+    const finalBreakdown = effectiveUseCalculator && calculatedBreakdown ? calculatedBreakdown : formData.pointsBreakdown;
 
     // Validation
     if (!formData.title || !formData.description || !formData.organizer || !formData.location) {
@@ -396,7 +430,7 @@ export function ActivityManagement() {
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(activity.startDate).toLocaleDateString()}</span>
+                      <span>{formatDate(activity.startDate)}</span>
                     </div>
                     <div className="flex items-center gap-2 font-semibold">
                       <Award className="h-4 w-4 text-amber-600" />
@@ -434,6 +468,17 @@ export function ActivityManagement() {
                   )}
 
                   <div className="flex gap-2 pt-2 border-t">
+                    {activity.category === 'event' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setQrCodeEvent({ id: activity.id, title: activity.title })}
+                        className="flex-1"
+                      >
+                        <QrCode className="h-4 w-4 mr-1" />
+                        QR Code
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -592,7 +637,14 @@ export function ActivityManagement() {
               <Label htmlFor="category">Category <span className="text-destructive">*</span></Label>
               <Select
                 value={formData.category}
-                onValueChange={(value: string) => setFormData({ ...formData, category: value as 'coursework' | 'society' | 'event' })}
+                onValueChange={(value: string) => {
+                  const category = value as 'coursework' | 'society' | 'event';
+                  setFormData({ ...formData, category });
+                  // Force calculator for events
+                  if (category === 'event') {
+                    setUseCalculator(true);
+                  }
+                }}
               >
                 <SelectTrigger id="category" className="w-full">
                   <SelectValue />
@@ -613,24 +665,30 @@ export function ActivityManagement() {
                     <Calculator className="h-5 w-5 text-amber-600" />
                     <Label className="text-base font-semibold">Points Calculator</Label>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="use-calculator" className="text-sm font-normal">Use calculator</Label>
-                    <Checkbox
-                      id="use-calculator"
-                      checked={useCalculator}
-                      onCheckedChange={(checked) => setUseCalculator(checked as boolean)}
-                    />
-                  </div>
+                  {formData.category === 'event' ? (
+                    <Badge variant="secondary" className="text-xs">
+                      Required for events
+                    </Badge>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="use-calculator" className="text-sm font-normal">Use calculator</Label>
+                      <Checkbox
+                        id="use-calculator"
+                        checked={useCalculator}
+                        onCheckedChange={(checked) => setUseCalculator(checked as boolean)}
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {useCalculator ? (
+                {(useCalculator || formData.category === 'event') ? (
                   <>
                     <div className="bg-background/80 p-3 rounded-lg border space-y-3">
                       {/* Time Commitment */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-sm">Time Commitment (hours)</Label>
-                          <Badge variant="secondary">{timeCommitmentHours}h × 10 = {timeCommitmentHours * 10} pts</Badge>
+                          <Badge variant="secondary">{timeCommitmentHours}h × 15 = {timeCommitmentHours * 15} pts</Badge>
                         </div>
                         <Slider
                           value={[timeCommitmentHours]}
@@ -647,7 +705,7 @@ export function ActivityManagement() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-sm">Difficulty Level</Label>
-                          <Badge variant="secondary">{difficultyLevel} × 20 = {difficultyLevel * 20} pts</Badge>
+                          <Badge variant="secondary">{difficultyLevel} × 5 = {difficultyLevel * 5} pts</Badge>
                         </div>
                         <Slider
                           value={[difficultyLevel]}
@@ -658,19 +716,18 @@ export function ActivityManagement() {
                           className="w-full"
                         />
                         <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>1 - Very Easy</span>
+                          <span>1 - Low Effort</span>
                           <span>3 - Moderate</span>
-                          <span>5 - Very Hard</span>
+                          <span>5 - High Effort</span>
                         </div>
-                      </div>
-
-                      {/* SDG Impact */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-sm">SDG Impact</Label>
-                          <Badge variant="secondary">{formData.sdgGoals?.length || 0} SDGs × 15 = {(formData.sdgGoals?.length || 0) * 15} pts</Badge>
+                        <div className="mt-2 p-2 bg-muted/50 rounded-md text-xs space-y-1">
+                          <p className="font-semibold">Examples:</p>
+                          <p><strong>Level 1:</strong> Crowd control, ushering, simple setup tasks</p>
+                          <p><strong>Level 2:</strong> Basic event assistance, simple data entry</p>
+                          <p><strong>Level 3:</strong> Event coordination, moderate planning tasks</p>
+                          <p><strong>Level 4:</strong> Complex event management, research projects</p>
+                          <p><strong>Level 5:</strong> Consulting work, strategic planning, high-stakes decision making</p>
                         </div>
-                        <p className="text-xs text-muted-foreground">Automatically calculated based on selected SDG goals below</p>
                       </div>
                     </div>
 
@@ -869,6 +926,15 @@ export function ActivityManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {qrCodeEvent && (
+        <QRCodeDialog
+          open={!!qrCodeEvent}
+          onOpenChange={(open) => !open && setQrCodeEvent(null)}
+          eventId={qrCodeEvent.id}
+          eventTitle={qrCodeEvent.title}
+        />
+      )}
     </div>
   );
 }

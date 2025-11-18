@@ -47,12 +47,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { LoginDialog } from "./LoginDialog";
+import { SignupDialog, UserSignupData } from "./SignupDialog";
 
 const FAVORITES_STORAGE_KEY = 'sdg-favorite-events';
 
 export function BulletinBoard() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter] = useState<
+  const [categoryFilter, setCategoryFilter] = useState<
     "all" | "coursework" | "society" | "event"
   >("all");
   const [selectedActivity, setSelectedActivity] =
@@ -70,6 +72,9 @@ export function BulletinBoard() {
     }
     return new Set();
   });
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [loginMessage, setLoginMessage] = useState<string | undefined>(undefined);
+  const [showSignupDialog, setShowSignupDialog] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -158,9 +163,45 @@ export function BulletinBoard() {
     },
   );
 
+  // Check if user is signed in (respects demo mode toggle)
+  const DEMO_MODE_STORAGE_KEY = 'sdg-demo-mode-signed-in';
+  const demoSignedIn = typeof window !== 'undefined' 
+    ? (localStorage.getItem(DEMO_MODE_STORAGE_KEY) ?? 'true') === 'true' // Default to signed in
+    : true;
+  const isGuest = !demoSignedIn; // Demo toggle controls guest state
+
   const handleRegister = (activity: AvailableActivity) => {
+    if (isGuest) {
+      setLoginMessage('Please sign in to register for events');
+      setShowLoginDialog(true);
+      return;
+    }
     setSelectedActivity(activity);
     setIsDialogOpen(true);
+  };
+
+  const handleLogin = () => {
+    // In a real app, this would handle actual login
+    // For now, we'll just show a message
+    toast.info('Please complete signup to register for events');
+  };
+
+  const handleSignup = (data: UserSignupData) => {
+    // In a real app, this would create the user account
+    // For demo purposes, we'll store it and show a toast
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(
+        'sdg-platform-signup',
+        JSON.stringify({
+          ...data,
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }
+    toast.success('Account created successfully!');
+    setShowSignupDialog(false);
+    // Reload to update the app state
+    window.location.reload();
   };
 
   const confirmRegistration = () => {
@@ -270,6 +311,47 @@ export function BulletinBoard() {
                 className="pl-10"
               />
             </div>
+            
+            {/* Activity Type Filter */}
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <Button
+                variant={categoryFilter === "all" ? "default" : "outline"}
+                onClick={() => setCategoryFilter("all")}
+                className="gap-2"
+                size="sm"
+              >
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">All</span>
+              </Button>
+              <Button
+                variant={categoryFilter === "coursework" ? "default" : "outline"}
+                onClick={() => setCategoryFilter("coursework")}
+                className="gap-2"
+                size="sm"
+              >
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Coursework</span>
+              </Button>
+              <Button
+                variant={categoryFilter === "society" ? "default" : "outline"}
+                onClick={() => setCategoryFilter("society")}
+                className="gap-2"
+                size="sm"
+              >
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Society</span>
+              </Button>
+              <Button
+                variant={categoryFilter === "event" ? "default" : "outline"}
+                onClick={() => setCategoryFilter("event")}
+                className="gap-2"
+                size="sm"
+              >
+                <Calendar className="h-4 w-4" />
+                <span className="hidden sm:inline">Event</span>
+              </Button>
+            </div>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2 shrink-0">
@@ -346,10 +428,16 @@ export function BulletinBoard() {
 
           {/* Results and Active Filters */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="font-semibold">
                 {filteredActivities.length} {filteredActivities.length === 1 ? "activity" : "activities"}
               </Badge>
+              {categoryFilter !== "all" && (
+                <Badge variant="outline" className="font-semibold capitalize">
+                  {getCategoryIcon(categoryFilter)}
+                  <span className="ml-1">{categoryFilter}</span>
+                </Badge>
+              )}
               {selectedSDGs.size > 0 && (
                 <span className="text-sm text-muted-foreground">
                   with {selectedSDGs.size} SDG {selectedSDGs.size === 1 ? "filter" : "filters"}
@@ -403,7 +491,10 @@ export function BulletinBoard() {
 
       {/* Activities by Category Sections */}
       <div className="space-y-8">
-        {(['coursework', 'society', 'event'] as const).map((category) => {
+        {(categoryFilter === "all" 
+          ? (['coursework', 'society', 'event'] as const)
+          : [categoryFilter] as const
+        ).map((category) => {
           const categoryActivities = filteredActivities.filter(
             (activity) => activity.category === category
           );
@@ -717,21 +808,15 @@ export function BulletinBoard() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">
-                          Time Commitment ({selectedActivity.pointsBreakdown.timeCommitment / 10} hours)
+                          Time Commitment ({selectedActivity.pointsBreakdown.timeCommitment / 15} hours)
                         </span>
                         <Badge variant="secondary">{selectedActivity.pointsBreakdown.timeCommitment} pts</Badge>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">
-                          Difficulty (Level {selectedActivity.pointsBreakdown.difficulty / 20})
+                          Difficulty (Level {selectedActivity.pointsBreakdown.difficulty / 5})
                         </span>
                         <Badge variant="secondary">{selectedActivity.pointsBreakdown.difficulty} pts</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">
-                          SDG Impact ({selectedActivity.sdgGoals.length} goals)
-                        </span>
-                        <Badge variant="secondary">{selectedActivity.pointsBreakdown.sdgImpact} pts</Badge>
                       </div>
                       <div className="border-t pt-2 mt-2 flex justify-between items-center font-semibold">
                         <span>Total Points</span>
@@ -837,6 +922,26 @@ export function BulletinBoard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <LoginDialog
+        open={showLoginDialog}
+        onOpenChange={setShowLoginDialog}
+        onLogin={handleLogin}
+        onSignUp={() => {
+          setShowLoginDialog(false);
+          setShowSignupDialog(true);
+        }}
+        message={loginMessage}
+      />
+
+      <SignupDialog
+        open={showSignupDialog}
+        onOpenChange={setShowSignupDialog}
+        onSignup={handleSignup}
+        onSkip={() => {
+          setShowSignupDialog(false);
+        }}
+      />
     </div>
   );
 }

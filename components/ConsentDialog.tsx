@@ -16,6 +16,8 @@ export interface ConsentPreferences {
   personalization: boolean;
 }
 
+const DEMO_MODE_STORAGE_KEY = 'sdg-demo-mode-signed-in';
+
 export function ConsentDialog({ onConsent }: ConsentDialogProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
@@ -25,6 +27,17 @@ export function ConsentDialog({ onConsent }: ConsentDialogProps) {
     personalization: true,
   });
 
+  const setDemoModeToSignedIn = () => {
+    // Automatically toggle to signed-in mode after consent
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(DEMO_MODE_STORAGE_KEY, 'true');
+      // Reload page to ensure all components update to signed-in mode
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
+  };
+
   const handleAcceptAll = () => {
     const allPreferences = {
       essential: true,
@@ -33,11 +46,13 @@ export function ConsentDialog({ onConsent }: ConsentDialogProps) {
     };
     onConsent(allPreferences);
     setIsOpen(false);
+    setDemoModeToSignedIn();
   };
 
   const handleAcceptSelected = () => {
     onConsent(preferences);
     setIsOpen(false);
+    setDemoModeToSignedIn();
   };
 
   const handleDecline = () => {
@@ -48,6 +63,7 @@ export function ConsentDialog({ onConsent }: ConsentDialogProps) {
     };
     onConsent(minimalPreferences);
     setIsOpen(false);
+    setDemoModeToSignedIn();
   };
 
   const togglePreference = (key: keyof ConsentPreferences) => {

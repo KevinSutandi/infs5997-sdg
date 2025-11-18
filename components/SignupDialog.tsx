@@ -16,6 +16,7 @@ interface SignupDialogProps {
   open: boolean;
   onSignup: (data: UserSignupData) => void;
   onSkip?: () => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export interface UserSignupData {
@@ -37,7 +38,7 @@ const FACULTIES = [
   'School of Computer Science & Engineering',
 ];
 
-export function SignupDialog({ open, onSignup }: SignupDialogProps) {
+export function SignupDialog({ open, onSignup, onOpenChange }: SignupDialogProps) {
   const [name, setName] = useState('');
   const [studentId, setStudentId] = useState('');
   const [faculty, setFaculty] = useState('');
@@ -123,11 +124,15 @@ export function SignupDialog({ open, onSignup }: SignupDialogProps) {
       email: email.trim() || undefined,
       password: password,
     });
+    // Close dialog after successful signup
+    if (onOpenChange) {
+      onOpenChange(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => { }}>
-      <DialogContent className="max-w-md" showCloseButton={false}>
+    <Dialog open={open} onOpenChange={onOpenChange || (() => { })}>
+      <DialogContent className="max-w-md" showCloseButton={!!onOpenChange}>
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-center mb-2">
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">

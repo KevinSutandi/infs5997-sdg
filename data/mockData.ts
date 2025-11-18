@@ -316,6 +316,24 @@ export const currentUser: Student = {
         submittedDate: "2024-09-16",
       },
     },
+    {
+      id: "user-event-8",
+      activityId: "past-4",
+      title: "Renewable Energy Innovation Expo",
+      category: "event",
+      sdgGoals: [7, 9, 13],
+      points: 250,
+      startDate: "2024-10-20",
+      description: "Exhibition showcasing innovative renewable energy solutions and technologies from local startups and research institutions.",
+      organizer: "Engineering Faculty",
+      location: "Engineering Building Exhibition Hall",
+      imageUrl:
+        "https://images.unsplash.com/photo-1759496434742-771c92e66103?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25mZXJlbmNlJTIwZXZlbnQlMjBwcmVzZW50YXRpb258ZW58MXx8fHwxNzYxMTg3NDU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      status: "attended",
+      registeredDate: "2024-10-10",
+      attendedDate: "2024-10-20",
+      // No feedback - can be demoed for feedback feature
+    },
   ],
   vouchers: [
     {

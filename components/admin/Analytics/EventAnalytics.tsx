@@ -9,12 +9,14 @@ import { Progress } from '../../ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../ui/tabs';
 import { getEventAnalytics, getAllRegisteredEvents } from '@/lib/adminAnalytics';
-import { Download, Search, Star, Users, Heart, TrendingUp, Award, Target, AlertCircle, MessageSquare, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Download, Search, Star, Users, Heart, TrendingUp, Award, Target, AlertCircle, MessageSquare, ThumbsUp, ThumbsDown, QrCode } from 'lucide-react';
+import { QRCodeDialog } from '../QRCodeDialog';
 
 export function EventAnalytics() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'registered' | 'attended' | 'rating' | 'favorites'>('registered');
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'positive' | 'negative'>('all');
+  const [qrCodeEvent, setQrCodeEvent] = useState<{ id: string; title: string } | null>(null);
 
   const eventData = getEventAnalytics();
   const allEvents = getAllRegisteredEvents();
@@ -212,7 +214,10 @@ export function EventAnalytics() {
                 <TrendingUp className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="space-y-4">
-                {filteredData.slice(0, 5).map((event, idx) => (
+                {filteredData
+                  .sort((a, b) => b.attended - a.attended)
+                  .slice(0, 5)
+                  .map((event, idx) => (
                   <div key={event.id} className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -671,6 +676,7 @@ export function EventAnalytics() {
                     <th className="text-right p-3 font-semibold">Avg Rating</th>
                     <th className="text-right p-3 font-semibold">Favorites</th>
                     <th className="text-right p-3 font-semibold">Capacity</th>
+                    <th className="text-center p-3 font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -713,6 +719,17 @@ export function EventAnalytics() {
                       <td className="p-3 text-right text-sm text-muted-foreground">
                         {event.capacity ? `${event.enrolled || 0} / ${event.capacity}` : 'Unlimited'}
                       </td>
+                      <td className="p-3 text-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setQrCodeEvent({ id: event.id, title: event.title })}
+                          className="flex items-center gap-1"
+                        >
+                          <QrCode className="h-3 w-3" />
+                          QR Code
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -721,6 +738,15 @@ export function EventAnalytics() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {qrCodeEvent && (
+        <QRCodeDialog
+          open={!!qrCodeEvent}
+          onOpenChange={(open) => !open && setQrCodeEvent(null)}
+          eventId={qrCodeEvent.id}
+          eventTitle={qrCodeEvent.title}
+        />
+      )}
     </div>
   );
 }

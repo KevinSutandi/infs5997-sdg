@@ -1,7 +1,7 @@
 export interface PointsBreakdown {
-  timeCommitment: number; // Hours * 10 points per hour
-  difficulty: number; // 1-5 scale * 20 points
-  sdgImpact: number; // Number of SDGs * 15 points
+  timeCommitment: number; // Hours * 15 points per hour
+  difficulty: number; // 1-5 scale * 5 points per level
+  sdgImpact: number; // Always 0 - SDG count no longer contributes to points
   total: number;
   explanation?: string; // Optional custom explanation
 }

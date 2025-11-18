@@ -11,6 +11,10 @@ import {
   SignupDialog,
   UserSignupData,
 } from "@/components/SignupDialog";
+import {
+  SDGSurveyDialog,
+  SDGSurveyData,
+} from "@/components/SDGSurveyDialog";
 import { Toaster } from "@/components/ui/sonner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -18,6 +22,8 @@ import { Menu } from "lucide-react";
 
 const CONSENT_STORAGE_KEY = "sdg-platform-consent";
 const SIGNUP_STORAGE_KEY = "sdg-platform-signup";
+const SURVEY_STORAGE_KEY = "sdg-platform-survey";
+const DEMO_MODE_STORAGE_KEY = 'sdg-demo-mode-signed-in';
 
 interface StudentLayoutWrapperProps {
   children: React.ReactNode;
@@ -31,6 +37,12 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
     }
     return false;
   });
+  const [hasSurvey, setHasSurvey] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !!localStorage.getItem(SURVEY_STORAGE_KEY);
+    }
+    return false;
+  });
   const [hasConsent, setHasConsent] = useState(() => {
     if (typeof window !== 'undefined') {
       return !!localStorage.getItem(CONSENT_STORAGE_KEY);
@@ -39,6 +51,7 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSignupDialog, setShowSignupDialog] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -54,7 +67,25 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
         timestamp: new Date().toISOString(),
       }),
     );
+    // Automatically set demo mode to signed-in after successful signup
+    localStorage.setItem(DEMO_MODE_STORAGE_KEY, 'true');
+    setShowSignupDialog(false);
     setHasSignup(true);
+    // Reload to apply the signed-in state
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  };
+
+  const handleSurvey = (data: SDGSurveyData) => {
+    localStorage.setItem(
+      SURVEY_STORAGE_KEY,
+      JSON.stringify({
+        ...data,
+        timestamp: new Date().toISOString(),
+      }),
+    );
+    setHasSurvey(true);
   };
 
   const handleConsent = (preferences: ConsentPreferences) => {
@@ -85,8 +116,12 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
     );
   }
 
-  // Show signup dialog if user hasn't signed up yet
-  if (!hasSignup) {
+  // Guest mode: Allow browsing without signup, but show signup dialog optionally
+  // Show signup dialog only if user explicitly wants to sign up
+  // For now, we'll allow guest browsing and show dialogs when needed
+
+  // Show signup dialog if explicitly requested (for guest users)
+  if (showSignupDialog && !hasSignup) {
     return (
       <>
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -105,7 +140,11 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
         <SignupDialog
           open={true}
           onSignup={handleSignup}
+          onOpenChange={(open) => {
+            setShowSignupDialog(open);
+          }}
           onSkip={() => {
+            setShowSignupDialog(false);
             localStorage.setItem(
               SIGNUP_STORAGE_KEY,
               JSON.stringify({
@@ -115,15 +154,43 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
                 timestamp: new Date().toISOString(),
               }),
             );
+            // Automatically set demo mode to signed-in after skip (treating as signup)
+            localStorage.setItem(DEMO_MODE_STORAGE_KEY, 'true');
             setHasSignup(true);
+            // Reload to apply the signed-in state
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
           }}
         />
       </>
     );
   }
 
-  // Show consent dialog if user hasn't consented yet
-  if (!hasConsent) {
+  // Show survey dialog if user has signed up but hasn't completed survey yet
+  if (hasSignup && !hasSurvey) {
+    return (
+      <>
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
+            <div className="mb-8">
+              <h1 className="text-4xl mb-2 bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                SDGgo!
+              </h1>
+              <p className="text-muted-foreground">
+                UNSW&apos;s platform for tracking your contribution to the UN Sustainable
+                Development Goals
+              </p>
+            </div>
+          </div>
+        </div>
+        <SDGSurveyDialog open={true} onSubmit={handleSurvey} />
+      </>
+    );
+  }
+
+  // Show consent dialog if user has signed up but hasn't consented yet
+  if (hasSignup && !hasConsent) {
     return (
       <>
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -150,13 +217,19 @@ export function StudentLayoutWrapper({ children }: StudentLayoutWrapperProps) {
       <div className="flex">
         {/* Desktop Sidebar */}
         <div className="hidden md:block">
-          <StudentSidebar />
+          <StudentSidebar onSignUpClick={() => setShowSignupDialog(true)} />
         </div>
 
         {/* Mobile Sidebar Sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetContent side="left" className="w-64 p-0">
-            <StudentSidebar onLinkClick={() => setMobileMenuOpen(false)} />
+            <StudentSidebar 
+              onLinkClick={() => setMobileMenuOpen(false)} 
+              onSignUpClick={() => {
+                setMobileMenuOpen(false);
+                setShowSignupDialog(true);
+              }}
+            />
           </SheetContent>
         </Sheet>
 

@@ -2,7 +2,7 @@ import { allStudents, availableActivities, currentUser } from "@/data/mockData";
 import { AvailableActivity, SDG_GOALS, EventFeedback } from "@/types";
 
 // Get activities from localStorage if available, otherwise use default
-function getAvailableActivities(): AvailableActivity[] {
+export function getAvailableActivities(): AvailableActivity[] {
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem("sdg-admin-activities");
     if (stored) {
@@ -124,6 +124,17 @@ function getAllStudentActivities(): Array<{
   return allActivities;
 }
 
+// Simple hash function for deterministic "random" numbers
+function hash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
 // Get all registered events (including favorites)
 export function getAllRegisteredEvents(): Array<{
   studentId: string;
@@ -171,55 +182,108 @@ export function getAllRegisteredEvents(): Array<{
     });
   }
 
-  // Mock: Add some registered events for other students
+  // Mock: Generate impressive numbers for admin dashboard demo
   // In real app, this would come from database
-  const mockStudentEvents = [
-    {
-      studentId: "user-2",
-      activityId: "avail-2",
-      title: "Water Conservation Workshop",
-      organizer: "Environmental Society",
-      sdgGoals: [6, 14, 15],
-      status: "registered" as const,
-      registeredDate: "2024-10-18",
-      faculty: "Faculty of Engineering",
-    },
-    {
-      studentId: "user-3",
-      activityId: "avail-4",
-      title: "Global Health & Wellbeing Seminar",
-      organizer: "Health & Wellness Society",
-      sdgGoals: [3, 10],
-      status: "attended" as const,
-      registeredDate: "2024-10-15",
-      attendedDate: "2024-11-12",
-      faculty: "Faculty of Science",
-    },
-    {
-      studentId: "user-4",
-      activityId: "avail-6",
-      title: "Gender Equality in STEM Panel",
-      organizer: "Women in STEM Society",
-      sdgGoals: [5, 10],
-      status: "registered" as const,
-      registeredDate: "2024-10-20",
-      faculty: "Faculty of Arts, Design & Architecture",
-    },
-  ];
+  const activities = getAvailableActivities();
+  const eventActivities = activities.filter((a) => a.category === "event");
 
-  mockStudentEvents.forEach((event) => {
-    events.push({
-      studentId: event.studentId,
-      eventId: `event-${event.studentId}-${event.activityId}`,
-      activityId: event.activityId,
-      title: event.title,
-      organizer: event.organizer,
-      sdgGoals: event.sdgGoals,
-      status: event.status,
-      registeredDate: event.registeredDate,
-      attendedDate: event.attendedDate,
-      faculty: event.faculty,
+  // Track which events currentUser has already registered for to avoid duplicates
+  const currentUserEventIds = new Set(
+    currentUser.registeredEvents?.map((e) => e.activityId) || []
+  );
+
+  // Generate mock registrations/attendances for each event
+  eventActivities.forEach((activity) => {
+    // Skip if currentUser already registered (to avoid duplicates)
+    if (currentUserEventIds.has(activity.id)) {
+      return;
+    }
+
+    // Generate deterministic but impressive registration numbers based on capacity
+    const seed = hash(activity.id);
+    const baseRegistrations = activity.capacity
+      ? Math.floor(activity.capacity * (0.65 + (seed % 30) / 100)) // 65-95% of capacity
+      : Math.floor(30 + (seed % 70)); // 30-100 registrations for unlimited capacity
+
+    // Generate attendance rate (75-92% for good events)
+    const attendanceRate = 0.75 + (seed % 17) / 100;
+
+    // Ensure we have enough students to generate unique registrations
+    const studentIds = allStudents.map((s) => s.id);
+    // Deterministic shuffle based on seed
+    const shuffledStudents = [...studentIds].sort((a, b) => {
+      const hashA = hash(activity.id + a);
+      const hashB = hash(activity.id + b);
+      return hashA - hashB;
     });
+
+    // Limit registrations to available students (reuse if needed but keep unique per event)
+    const maxRegistrations = Math.min(
+      baseRegistrations,
+      shuffledStudents.length * 2
+    ); // Allow some reuse
+    const registeredCount = maxRegistrations;
+    const attendedCount = Math.floor(registeredCount * attendanceRate); // Ensure attended <= registered
+
+    // Create registrations
+    for (let i = 0; i < maxRegistrations; i++) {
+      const studentId = shuffledStudents[i % shuffledStudents.length];
+      const student =
+        allStudents.find((s) => s.id === studentId) || currentUser;
+      const isAttended = i < attendedCount;
+      const daysAgo = 5 + ((seed + i) % 55); // 5-60 days ago
+      const registeredDate = new Date(
+        Date.now() - daysAgo * 24 * 60 * 60 * 1000
+      )
+        .toISOString()
+        .split("T")[0];
+
+      const eventData: (typeof events)[0] = {
+        studentId,
+        eventId: `event-${studentId}-${activity.id}-${i}`,
+        activityId: activity.id,
+        title: activity.title,
+        organizer: activity.organizer,
+        sdgGoals: activity.sdgGoals,
+        status: isAttended ? ("attended" as const) : ("registered" as const),
+        registeredDate,
+        attendedDate: isAttended
+          ? new Date(
+              new Date(registeredDate).getTime() +
+                (((seed + i) % 14) + 1) * 24 * 60 * 60 * 1000
+            )
+              .toISOString()
+              .split("T")[0]
+          : undefined,
+        faculty: student.faculty,
+        // Add feedback for attended events (70% chance, with good ratings)
+        feedback:
+          isAttended && (seed + i) % 10 < 7
+            ? {
+                overallRating: 3.5 + ((seed + i) % 15) / 10, // 3.5-5.0 rating
+                contentRating: 3.5 + ((seed + i + 1) % 15) / 10,
+                organizationRating: 3.5 + ((seed + i + 2) % 15) / 10,
+                speakersRating: 3.5 + ((seed + i + 3) % 15) / 10,
+                venueRating: 3.0 + ((seed + i + 4) % 20) / 10,
+                likedMost: "Great event! Very informative and well-organized.",
+                improvements:
+                  (seed + i) % 10 < 3
+                    ? "Could use better time management."
+                    : "",
+                wouldRecommend: (seed + i) % 10 < 8, // 80% recommend
+                additionalComments:
+                  (seed + i) % 2 === 0 ? "Would definitely attend again!" : "",
+                submittedDate: new Date(
+                  Date.now() - (((seed + i) % 30) + 1) * 24 * 60 * 60 * 1000
+                )
+                  .toISOString()
+                  .split("T")[0],
+              }
+            : undefined,
+      };
+
+      events.push(eventData);
+    }
   });
 
   return events;
@@ -239,10 +303,30 @@ function getFavorites(): Map<string, Set<string>> {
     }
   }
 
-  // Mock: Add some favorites for other students
-  favorites.set("avail-2", new Set(["user-1", "user-2", "user-5"]));
-  favorites.set("avail-4", new Set(["user-1", "user-3", "user-7"]));
-  favorites.set("avail-6", new Set(["user-1", "user-4", "user-6"]));
+  // Mock: Generate impressive favorite counts for admin dashboard
+  const activities = getAvailableActivities();
+  const eventActivities = activities.filter((a) => a.category === "event");
+  const allStudentIds = allStudents.map((s) => s.id).concat([currentUser.id]);
+
+  eventActivities.forEach((activity) => {
+    // Generate deterministic favorite count (8-35% of students favoriting popular events)
+    const seed = hash(activity.id);
+    const favoriteCount = Math.floor(
+      allStudentIds.length * (0.08 + (seed % 27) / 100)
+    );
+    // Deterministic shuffle
+    const shuffledStudents = [...allStudentIds].sort((a, b) => {
+      const hashA = hash(activity.id + a);
+      const hashB = hash(activity.id + b);
+      return hashA - hashB;
+    });
+    const favoriteSet = new Set(shuffledStudents.slice(0, favoriteCount));
+
+    // Merge with existing favorites from localStorage
+    const existing = favorites.get(activity.id) || new Set();
+    favoriteSet.forEach((id) => existing.add(id));
+    favorites.set(activity.id, existing);
+  });
 
   return favorites;
 }

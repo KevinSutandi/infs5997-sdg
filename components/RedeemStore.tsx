@@ -30,6 +30,7 @@ import {
   X,
   ArrowDown,
   Minus,
+  LogIn,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from 'next/image';
@@ -44,6 +45,15 @@ export function RedeemStore() {
     useState(false);
   const [isVouchersDialogOpen, setIsVouchersDialogOpen] =
     useState(false);
+
+  // Check if user is signed in (respects demo mode toggle)
+  const DEMO_MODE_STORAGE_KEY = 'sdg-demo-mode-signed-in';
+  const demoSignedIn = typeof window !== 'undefined' 
+    ? (localStorage.getItem(DEMO_MODE_STORAGE_KEY) ?? 'true') === 'true' // Default to signed in
+    : true;
+  const hasSignup = typeof window !== 'undefined' && !!localStorage.getItem('sdg-platform-signup');
+  const isGuest = !demoSignedIn; // Demo toggle controls guest state
+  const userPoints = isGuest ? 0 : (currentUser.totalPoints || 0);
 
   const categories = [
     { id: "all", label: "All Rewards", icon: Gift },
@@ -70,6 +80,12 @@ export function RedeemStore() {
   });
 
   const handleRedeemClick = (reward: Reward) => {
+    if (isGuest) {
+      toast.error("Sign In Required", {
+        description: "Please sign in to redeem rewards.",
+      });
+      return;
+    }
     setSelectedReward(reward);
     setIsConfirmDialogOpen(true);
   };
@@ -77,11 +93,19 @@ export function RedeemStore() {
   const handleConfirmRedeem = () => {
     if (!selectedReward) return;
 
+    if (isGuest) {
+      toast.error("Sign In Required", {
+        description: "Please sign in to redeem rewards.",
+      });
+      setIsConfirmDialogOpen(false);
+      return;
+    }
+
     if (
-      currentUser.totalPoints < selectedReward.pointsRequired
+      userPoints < selectedReward.pointsRequired
     ) {
       toast.error("Insufficient Points", {
-        description: `You need ${selectedReward.pointsRequired - currentUser.totalPoints} more points to redeem this reward.`,
+        description: `You need ${selectedReward.pointsRequired - userPoints} more points to redeem this reward.`,
       });
       setIsConfirmDialogOpen(false);
       return;
@@ -120,8 +144,8 @@ export function RedeemStore() {
   };
 
   const remainingPoints = selectedReward
-    ? currentUser.totalPoints - selectedReward.pointsRequired
-    : currentUser.totalPoints;
+    ? userPoints - selectedReward.pointsRequired
+    : userPoints;
 
   return (
     <div className="space-y-6">
@@ -135,31 +159,46 @@ export function RedeemStore() {
             Exchange your SDG points for exclusive rewards 🎁
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setIsVouchersDialogOpen(true)}
-            className="flex items-center justify-center gap-2 hover:bg-accent transition-colors w-full sm:w-auto"
-          >
-            <Ticket className="h-4 w-4" />
-            My Vouchers
-          </Button>
-          <Card className="p-3 md:p-4 hover:shadow-lg transition-all bg-linear-to-br from-amber-500/10 via-amber-500/5 to-background border-amber-500/20 border-2">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium mb-1">
-                  Available Points
-                </p>
-                <p className="text-2xl md:text-3xl font-black bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
-                  {currentUser.totalPoints.toLocaleString()}
-                </p>
+        {!isGuest && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsVouchersDialogOpen(true)}
+              className="flex items-center justify-center gap-2 hover:bg-accent transition-colors w-full sm:w-auto"
+            >
+              <Ticket className="h-4 w-4" />
+              My Vouchers
+            </Button>
+            <Card className="p-3 md:p-4 hover:shadow-lg transition-all bg-linear-to-br from-amber-500/10 via-amber-500/5 to-background border-amber-500/20 border-2">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">
+                    Available Points
+                  </p>
+                  <p className="text-2xl md:text-3xl font-black bg-linear-to-r from-amber-600 to-yellow-500 bg-clip-text text-transparent">
+                    {userPoints.toLocaleString()}
+                  </p>
+                </div>
+                <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                  <Trophy className="h-5 w-5 md:h-6 md:w-6 text-amber-600" />
+                </div>
               </div>
-              <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                <Trophy className="h-5 w-5 md:h-6 md:w-6 text-amber-600" />
+            </Card>
+          </div>
+        )}
+        {isGuest && (
+          <Card className="p-4 bg-muted/50 border-dashed">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <LogIn className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Sign In Required</p>
+                <p className="text-xs text-muted-foreground">Please sign in to view your points and redeem rewards.</p>
               </div>
             </div>
           </Card>
-        </div>
+        )}
       </div>
 
       {/* Search and Category Filters */}
@@ -233,8 +272,7 @@ export function RedeemStore() {
       {/* Rewards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRewards.map((reward) => {
-          const canAfford =
-            currentUser.totalPoints >= reward.pointsRequired;
+          const canAfford = !isGuest && userPoints >= reward.pointsRequired;
           const isLowStock = reward.stock <= 5;
 
           return (
@@ -316,18 +354,20 @@ export function RedeemStore() {
 
                 {/* Redeem Button */}
                 <Button
-                  className={`w-full font-semibold transition-all cursor-pointer ${canAfford && reward.stock > 0
+                  className={`w-full font-semibold transition-all cursor-pointer ${canAfford && reward.stock > 0 && !isGuest
                     ? "bg-linear-to-r from-amber-600 to-yellow-500 hover:from-amber-700 hover:to-yellow-600 text-white shadow-md hover:shadow-lg"
                     : ""
                     }`}
-                  disabled={!canAfford || reward.stock === 0}
+                  disabled={isGuest || !canAfford || reward.stock === 0}
                   onClick={() => handleRedeemClick(reward)}
                 >
-                  {reward.stock === 0
-                    ? "Out of Stock"
-                    : !canAfford
-                      ? `Need ${reward.pointsRequired - currentUser.totalPoints} more points`
-                      : "Redeem Now"}
+                  {isGuest
+                    ? "Sign In to Redeem"
+                    : reward.stock === 0
+                      ? "Out of Stock"
+                      : !canAfford
+                        ? `Need ${reward.pointsRequired - userPoints} more points`
+                        : "Redeem Now"}
                 </Button>
               </div>
             </Card>
@@ -413,40 +453,46 @@ export function RedeemStore() {
                 {/* Points Calculation Flow */}
                 <div className="space-y-1 py-1 px-3 rounded-md bg-muted/20">
                   {/* Current Points */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground font-medium">
-                      Your Current Points
-                    </span>
-                    <span className="text-lg font-bold">{currentUser.totalPoints.toLocaleString()}</span>
-                  </div>
+                  {!isGuest && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground font-medium">
+                        Your Current Points
+                      </span>
+                      <span className="text-lg font-bold">{userPoints.toLocaleString()}</span>
+                    </div>
+                  )}
 
                   {/* Arrow with subtraction */}
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="flex-1 h-px bg-border"></div>
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-200">
-                      <Minus className="h-3 w-3 text-amber-700" />
-                      <span className="text-xs font-semibold text-amber-700">
-                        {selectedReward.pointsRequired.toLocaleString()}
-                      </span>
-                    </div>
-                    <ArrowDown className="h-4 w-4 text-amber-600" />
-                    <div className="flex-1 h-px bg-border"></div>
-                  </div>
+                  {!isGuest && (
+                    <>
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="flex-1 h-px bg-border"></div>
+                        <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-200">
+                          <Minus className="h-3 w-3 text-amber-700" />
+                          <span className="text-xs font-semibold text-amber-700">
+                            {selectedReward.pointsRequired.toLocaleString()}
+                          </span>
+                        </div>
+                        <ArrowDown className="h-4 w-4 text-amber-600" />
+                        <div className="flex-1 h-px bg-border"></div>
+                      </div>
 
-                  {/* Remaining Points */}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-sm text-muted-foreground font-medium">
-                      Remaining Points
-                    </span>
-                    <span
-                      className={`text-lg font-bold ${remainingPoints < 0
-                        ? "text-destructive"
-                        : "text-green-600"
-                        }`}
-                    >
-                      {remainingPoints.toLocaleString()}
-                    </span>
-                  </div>
+                      {/* Remaining Points */}
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-sm text-muted-foreground font-medium">
+                          Remaining Points
+                        </span>
+                        <span
+                          className={`text-lg font-bold ${remainingPoints < 0
+                            ? "text-destructive"
+                            : "text-green-600"
+                            }`}
+                        >
+                          {remainingPoints.toLocaleString()}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between px-3 rounded-md bg-muted/30">
