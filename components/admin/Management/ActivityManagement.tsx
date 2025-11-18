@@ -170,35 +170,18 @@ export function ActivityManagement() {
       sdgGoals: activity.sdgGoals || [],
     });
 
-    // For events, always use calculator
-    if (activity.category === 'event') {
-      if (activity.pointsBreakdown) {
-        // Extract values from breakdown (using new multipliers: /15 and /5)
-        setTimeCommitmentHours(activity.pointsBreakdown.timeCommitment / 15);
-        setDifficultyLevel(activity.pointsBreakdown.difficulty / 5);
-        setPointsExplanation(activity.pointsBreakdown.explanation || '');
-      } else {
-        // Default values if no breakdown exists
-        setTimeCommitmentHours(1);
-        setDifficultyLevel(3);
-        setPointsExplanation('');
-      }
-      setUseCalculator(true);
+    if (activity.pointsBreakdown) {
+      // Extract values from breakdown (using new multipliers: /15 and /5)
+      setTimeCommitmentHours(activity.pointsBreakdown.timeCommitment / 15);
+      setDifficultyLevel(activity.pointsBreakdown.difficulty / 5);
+      setPointsExplanation(activity.pointsBreakdown.explanation || '');
     } else {
-      // For non-events, check if breakdown exists
-      if (activity.pointsBreakdown) {
-        setTimeCommitmentHours(activity.pointsBreakdown.timeCommitment / 15);
-        setDifficultyLevel(activity.pointsBreakdown.difficulty / 5);
-        setPointsExplanation(activity.pointsBreakdown.explanation || '');
-        setUseCalculator(true);
-      } else {
-        setTimeCommitmentHours(1);
-        setDifficultyLevel(3);
-        setPointsExplanation('');
-        setUseCalculator(false);
-      }
+      // Default values if no breakdown exists
+      setTimeCommitmentHours(1);
+      setDifficultyLevel(3);
+      setPointsExplanation('');
     }
-
+    setUseCalculator(true);
     setIsEditDialogOpen(true);
   };
 
@@ -444,10 +427,9 @@ export function ActivityManagement() {
                       return sdg ? (
                         <div
                           key={sdgNum}
-                          className={`h-6 w-6 rounded flex items-center justify-center text-xs font-bold shadow-md ${
-                            sdg.textColor === 'black' ? 'text-black' : 'text-white'
-                          }`}
-                          style={{ 
+                          className={`h-6 w-6 rounded flex items-center justify-center text-xs font-bold shadow-md ${sdg.textColor === 'black' ? 'text-black' : 'text-white'
+                            }`}
+                          style={{
                             backgroundColor: sdg.color,
                             textShadow: sdg.textColor === 'white' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(255,255,255,0.5)'
                           }}
@@ -473,17 +455,15 @@ export function ActivityManagement() {
                   )}
 
                   <div className="flex gap-2 pt-2 border-t">
-                    {activity.category === 'event' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setQrCodeEvent({ id: activity.id, title: activity.title })}
-                        className="flex-1"
-                      >
-                        <QrCode className="h-4 w-4 mr-1" />
-                        QR Code
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setQrCodeEvent({ id: activity.id, title: activity.title })}
+                      className="flex-1"
+                    >
+                      <QrCode className="h-4 w-4 mr-1" />
+                      QR Code
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -670,20 +650,6 @@ export function ActivityManagement() {
                     <Calculator className="h-5 w-5 text-amber-600" />
                     <Label className="text-base font-semibold">Points Calculator</Label>
                   </div>
-                  {formData.category === 'event' ? (
-                    <Badge variant="secondary" className="text-xs">
-                      Required for events
-                    </Badge>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="use-calculator" className="text-sm font-normal">Use calculator</Label>
-                      <Checkbox
-                        id="use-calculator"
-                        checked={useCalculator}
-                        onCheckedChange={(checked) => setUseCalculator(checked as boolean)}
-                      />
-                    </div>
-                  )}
                 </div>
 
                 {(useCalculator || formData.category === 'event') ? (
@@ -693,7 +659,7 @@ export function ActivityManagement() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="text-sm">Time Commitment (hours)</Label>
-                          <Badge variant="secondary">{timeCommitmentHours}h × 15 = {timeCommitmentHours * 15} pts</Badge>
+                          <Badge variant="secondary">{timeCommitmentHours}h x 15 = {timeCommitmentHours * 15} pts</Badge>
                         </div>
                         <Slider
                           value={[timeCommitmentHours]}
@@ -878,10 +844,9 @@ export function ActivityManagement() {
                       className="text-sm cursor-pointer flex items-center gap-2"
                     >
                       <span
-                        className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
-                          sdg.textColor === 'black' ? 'text-black' : 'text-white'
-                        }`}
-                        style={{ 
+                        className={`h-6 w-6 p-3 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${sdg.textColor === 'black' ? 'text-black' : 'text-white'
+                          }`}
+                        style={{
                           backgroundColor: sdg.color,
                           textShadow: sdg.textColor === 'white' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(255,255,255,0.5)'
                         }}
