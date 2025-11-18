@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
   { title: 'My Dashboard', value: 'dashboard', href: '/dashboard', icon: LayoutDashboard, section: 'personal' },
   { title: 'My Events', value: 'events', href: '/events', icon: CalendarDays, section: 'personal' },
   { title: 'Redeem Store', value: 'redeem', href: '/redeem', icon: ShoppingBag, section: 'shop' },
+  { title: 'Settings', value: 'settings', href: '/settings', icon: Settings, section: 'settings' },
 ];
 
 interface StudentSidebarProps {
@@ -172,6 +173,38 @@ export function StudentSidebar({ onLinkClick }: StudentSidebarProps = {}) {
             <nav className="space-y-1">
               {navItems
                 .filter(item => item.section === 'shop')
+                .map((item) => {
+                  const isActive = currentActiveTab === item.value || pathname === item.href;
+                  return (
+                    <Link
+                      key={item.value}
+                      href={item.href}
+                      onClick={onLinkClick}
+                      className={cn(
+                        'w-full flex items-center cursor-pointer gap-3 px-3 py-2.5 rounded-lg transition-all group',
+                        isActive
+                          ? 'bg-linear-to-r from-[#FFE600] to-[#ffd700] text-[#231F20] shadow-md font-semibold'
+                          : 'text-muted-foreground hover:bg-accent hover:text-foreground hover:translate-x-1'
+                      )}
+                    >
+                      <item.icon className={cn(
+                        'h-4 w-4 transition-transform',
+                        isActive ? 'text-[#231F20]' : 'group-hover:scale-110'
+                      )} />
+                      <span className="text-sm font-medium">{item.title}</span>
+                    </Link>
+                  );
+                })}
+            </nav>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-3 px-3">
+              More
+            </h3>
+            <nav className="space-y-1">
+              {navItems
+                .filter(item => item.section === 'settings')
                 .map((item) => {
                   const isActive = currentActiveTab === item.value || pathname === item.href;
                   return (
