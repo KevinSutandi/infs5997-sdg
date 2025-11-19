@@ -194,22 +194,20 @@ export function getAllRegisteredEvents(): Array<{
 
   // Generate mock registrations/attendances for each event
   eventActivities.forEach((activity) => {
-    // Skip if currentUser already registered (to avoid duplicates)
-    if (currentUserEventIds.has(activity.id)) {
-      return;
-    }
-
     // Generate deterministic but impressive registration numbers based on capacity
     const seed = hash(activity.id);
     const baseRegistrations = activity.capacity
-      ? Math.floor(activity.capacity * (0.65 + (seed % 30) / 100)) // 65-95% of capacity
-      : Math.floor(30 + (seed % 70)); // 30-100 registrations for unlimited capacity
+      ? Math.floor(activity.capacity * (0.85 + (seed % 20) / 100)) // 85-105% of capacity (allow over-capacity)
+      : Math.floor(150 + (seed % 250)); // 150-400 registrations for unlimited capacity
 
     // Generate attendance rate (75-92% for good events)
     const attendanceRate = 0.75 + (seed % 17) / 100;
 
     // Ensure we have enough students to generate unique registrations
-    const studentIds = allStudents.map((s) => s.id);
+    // Filter out currentUser to avoid duplicates (currentUser's events are already added above)
+    const studentIds = allStudents
+      .filter(s => s.id !== currentUser.id)
+      .map((s) => s.id);
     // Deterministic shuffle based on seed
     const shuffledStudents = [...studentIds].sort((a, b) => {
       const hashA = hash(activity.id + a);
@@ -218,14 +216,16 @@ export function getAllRegisteredEvents(): Array<{
     });
 
     // Limit registrations to available students (reuse if needed but keep unique per event)
+    // Increased multiplier to allow more registrations
     const maxRegistrations = Math.min(
       baseRegistrations,
-      shuffledStudents.length * 2
-    ); // Allow some reuse
+      shuffledStudents.length * 10 // Allow more reuse for higher numbers
+    );
     const registeredCount = maxRegistrations;
     const attendedCount = Math.floor(registeredCount * attendanceRate); // Ensure attended <= registered
 
     // Create registrations
+    // Generate mock registrations for all events (currentUser's registration is already added above)
     for (let i = 0; i < maxRegistrations; i++) {
       const studentId = shuffledStudents[i % shuffledStudents.length];
       const student =
@@ -455,23 +455,34 @@ export function getEventAnalytics() {
 
     const stat = eventStats.get(event.activityId);
     if (stat) {
-      if (event.status === "registered") stat.registered++;
-      if (event.status === "attended") {
+      if (event.status === "registered") {
+        stat.registered++;
+      } else if (event.status === "attended") {
+        // Attended users are also counted as registered (you can't attend without registering)
+        stat.registered++;
         stat.attended++;
         if (event.feedback?.overallRating) {
           const ratings = eventRatings.get(event.activityId) || [];
           ratings.push(event.feedback.overallRating);
           eventRatings.set(event.activityId, ratings);
         }
+      } else if (event.status === "cancelled") {
+        stat.cancelled++;
+        // Cancelled users were registered, so count them in registered
+        stat.registered++;
       }
-      if (event.status === "cancelled") stat.cancelled++;
     }
   });
 
   // Calculate attendance rates and average ratings
   eventStats.forEach((stat, id) => {
+    // Calculate attendance rate: (attended / registered) * 100
+    // Cap at 100% to handle edge cases
     if (stat.registered > 0) {
-      stat.attendanceRate = (stat.attended / stat.registered) * 100;
+      stat.attendanceRate = Math.min((stat.attended / stat.registered) * 100, 100);
+    } else {
+      // If no one registered but someone attended (edge case), set to 0%
+      stat.attendanceRate = 0;
     }
     const ratings = eventRatings.get(id);
     if (ratings && ratings.length > 0) {
