@@ -32,8 +32,24 @@ import {
   X,
   EyeOff,
   GraduationCap,
+  Database,
+  Download,
+  Trash2,
+  Eye,
+  AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { getAllRegisteredEvents } from '@/lib/adminAnalytics';
 
 const FACULTIES = [
   'UNSW Business School',
@@ -48,6 +64,8 @@ const FACULTIES = [
 
 export default function SettingsPage() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [viewDataOpen, setViewDataOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   // Privacy settings state
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
@@ -98,6 +116,115 @@ export default function SettingsPage() {
         description: value
           ? 'Receive personalized recommendations'
           : 'Personalized recommendations disabled'
+      });
+    }
+  };
+
+  // Collect all user data
+  const getUserData = () => {
+    const registeredEvents = getAllRegisteredEvents().filter(e => e.studentId === currentUser.id);
+    
+    return {
+      profile: {
+        name: currentUser.name,
+        studentId: 'z5352065',
+        faculty: currentUser.faculty,
+        avatar: currentUser.avatar,
+      },
+      points: {
+        total: currentUser.totalPoints,
+        weekly: currentUser.weeklyPoints,
+        monthly: currentUser.monthlyPoints,
+      },
+      activities: currentUser.activities || [],
+      registeredEvents: registeredEvents,
+      vouchers: currentUser.vouchers || [],
+      badges: currentUser.badges || [],
+      privacy: {
+        analyticsEnabled: analyticsEnabled,
+        personalizationEnabled: personalizationEnabled,
+        anonymousOnLeaderboard: anonymousOnLeaderboard,
+      },
+      preferences: {
+        activityReminders: activityReminders,
+        achievementAlerts: achievementAlerts,
+        weeklyDigest: weeklyDigest,
+      },
+      storedData: {
+        signup: typeof window !== 'undefined' ? localStorage.getItem('sdg-platform-signup') : null,
+        survey: typeof window !== 'undefined' ? localStorage.getItem('sdg-platform-survey') : null,
+        consent: typeof window !== 'undefined' ? localStorage.getItem('sdg-platform-consent') : null,
+        events: typeof window !== 'undefined' ? localStorage.getItem('sdg-user-events') : null,
+        favorites: typeof window !== 'undefined' ? localStorage.getItem('sdg-favorite-events') : null,
+      },
+      exportDate: new Date().toISOString(),
+    };
+  };
+
+  const handleViewData = () => {
+    setViewDataOpen(true);
+  };
+
+  const handleExportData = () => {
+    try {
+      const userData = getUserData();
+      const jsonString = JSON.stringify(userData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sdg-platform-data-${currentUser.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Data exported successfully', {
+        description: 'Your data has been downloaded as a JSON file.'
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export data', {
+        description: 'Please try again later.'
+      });
+    }
+  };
+
+  const handleDeleteData = () => {
+    try {
+      // Clear all localStorage data
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sdg-platform-signup');
+        localStorage.removeItem('sdg-platform-survey');
+        localStorage.removeItem('sdg-platform-consent');
+        localStorage.removeItem('sdg-user-events');
+        localStorage.removeItem('sdg-favorite-events');
+        localStorage.removeItem('anonymousOnLeaderboard');
+        localStorage.removeItem('sdg-admin-activities');
+        localStorage.removeItem('sdg-demo-mode-signed-in');
+      }
+
+      // Reset state
+      setAnalyticsEnabled(true);
+      setPersonalizationEnabled(true);
+      setAnonymousOnLeaderboard(false);
+      setActivityReminders(true);
+      setAchievementAlerts(true);
+      setWeeklyDigest(false);
+
+      toast.success('Data deleted successfully', {
+        description: 'All your stored data has been removed. You may need to sign up again.'
+      });
+
+      setDeleteConfirmOpen(false);
+      
+      // Reload page after a short delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete data', {
+        description: 'Please try again later.'
       });
     }
   };
@@ -258,6 +385,95 @@ export default function SettingsPage() {
 
       <Separator />
 
+      {/* Data Management Section */}
+      <section>
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+            <Database className="h-4 w-4 text-orange-600" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">Data Management</h2>
+            <p className="text-xs text-muted-foreground">View, export, or delete your data</p>
+          </div>
+        </div>
+
+        <Card className="divide-y">
+          {/* View Data */}
+          <div className="p-3 md:p-4 hover:bg-muted/50 transition-colors">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Label className="text-sm">View Your Data</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  See a summary of all data we have stored about you, including your profile, activities, points, and preferences.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleViewData}
+                className="mt-1"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                View Data
+              </Button>
+            </div>
+          </div>
+
+          {/* Export Data */}
+          <div className="p-3 md:p-4 hover:bg-muted/50 transition-colors">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Download className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Label className="text-sm">Export Your Data</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Download all your data as a JSON file. This includes your profile, activities, points, events, vouchers, and preferences.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportData}
+                className="mt-1"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
+              </Button>
+            </div>
+          </div>
+
+          {/* Delete Data */}
+          <div className="p-3 md:p-4 hover:bg-muted/50 transition-colors border-destructive/20">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  <Label className="text-sm text-destructive">Delete Your Data</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Permanently delete all your stored data from this platform. This action cannot be undone. You may need to sign up again.
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setDeleteConfirmOpen(true)}
+                className="mt-1"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Data
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </section>
+
+      <Separator />
+
       {/* Notifications Section */}
       <section>
         <div className="flex items-center gap-2.5 mb-4">
@@ -397,6 +613,149 @@ export default function SettingsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* View Data Dialog */}
+      <Dialog open={viewDataOpen} onOpenChange={setViewDataOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Your Data Summary
+            </DialogTitle>
+            <DialogDescription>
+              Overview of all data stored in your account
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {(() => {
+              const userData = getUserData();
+              return (
+                <div className="space-y-4">
+                  {/* Profile */}
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h3 className="font-semibold mb-2">Profile Information</h3>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-muted-foreground">Name:</span> {userData.profile.name}</p>
+                      <p><span className="text-muted-foreground">Student ID:</span> {userData.profile.studentId}</p>
+                      <p><span className="text-muted-foreground">Faculty:</span> {userData.profile.faculty}</p>
+                    </div>
+                  </div>
+
+                  {/* Points */}
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h3 className="font-semibold mb-2">Points Summary</h3>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-muted-foreground">Total Points:</span> {userData.points.total.toLocaleString()}</p>
+                      <p><span className="text-muted-foreground">Weekly Points:</span> {userData.points.weekly?.toLocaleString() || 0}</p>
+                      <p><span className="text-muted-foreground">Monthly Points:</span> {userData.points.monthly?.toLocaleString() || 0}</p>
+                    </div>
+                  </div>
+
+                  {/* Activities */}
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h3 className="font-semibold mb-2">Activities</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userData.activities.length} activity{userData.activities.length !== 1 ? 'ies' : ''} completed
+                    </p>
+                  </div>
+
+                  {/* Events */}
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h3 className="font-semibold mb-2">Registered Events</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userData.registeredEvents.length} event{userData.registeredEvents.length !== 1 ? 's' : ''} registered
+                    </p>
+                  </div>
+
+                  {/* Vouchers */}
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h3 className="font-semibold mb-2">Vouchers</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userData.vouchers.length} voucher{userData.vouchers.length !== 1 ? 's' : ''} redeemed
+                    </p>
+                  </div>
+
+                  {/* Badges */}
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h3 className="font-semibold mb-2">Badges</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userData.badges.length} badge{userData.badges.length !== 1 ? 's' : ''} earned
+                    </p>
+                  </div>
+
+                  {/* Privacy Settings */}
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <h3 className="font-semibold mb-2">Privacy Settings</h3>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-muted-foreground">Analytics:</span> {userData.privacy.analyticsEnabled ? 'Enabled' : 'Disabled'}</p>
+                      <p><span className="text-muted-foreground">Personalization:</span> {userData.privacy.personalizationEnabled ? 'Enabled' : 'Disabled'}</p>
+                      <p><span className="text-muted-foreground">Anonymous Leaderboard:</span> {userData.privacy.anonymousOnLeaderboard ? 'Enabled' : 'Disabled'}</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t">
+                    <p className="text-xs text-muted-foreground">
+                      Last updated: {new Date(userData.exportDate).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewDataOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              setViewDataOpen(false);
+              handleExportData();
+            }}>
+              <Download className="h-4 w-4 mr-2" />
+              Export This Data
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete All Your Data?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                This will permanently delete all your data from the platform, including:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Your profile information</li>
+                <li>All activities and points</li>
+                <li>Registered events and feedback</li>
+                <li>Redeemed vouchers</li>
+                <li>Privacy preferences</li>
+                <li>All stored preferences and settings</li>
+              </ul>
+              <p className="font-semibold text-destructive mt-3">
+                This action cannot be undone. You may need to sign up again to use the platform.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteData}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Yes, Delete All Data
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

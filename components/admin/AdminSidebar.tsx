@@ -61,7 +61,11 @@ export function AdminSidebar() {
               {navItems
                 .filter(item => item.section === 'analytics')
                 .map((item) => {
-                  const isActive = pathname === item.href || (pathname === '/admin' && item.href === '/admin');
+                  // For exact matches, check exact pathname
+                  // For /admin/rewards/analytics, make sure it doesn't match /admin/rewards
+                  const isActive = pathname === item.href || 
+                    (pathname === '/admin' && item.href === '/admin') ||
+                    (item.href === '/admin/rewards/analytics' && pathname.startsWith('/admin/rewards/analytics'));
                   return (
                     <Link key={item.href} href={item.href}>
                       <div
@@ -93,7 +97,10 @@ export function AdminSidebar() {
               {navItems
                 .filter(item => item.section === 'management')
                 .map((item) => {
-                  const isActive = pathname === item.href;
+                  // For management items, check exact match but exclude sub-routes
+                  // e.g., /admin/rewards should not match /admin/rewards/analytics
+                  const isActive = pathname === item.href && 
+                    !(item.href === '/admin/rewards' && pathname.startsWith('/admin/rewards/analytics'));
                   return (
                     <Link key={item.href} href={item.href}>
                       <div
